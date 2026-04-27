@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const {protect, authorize } = require("./middleware/auth");
+const { errorHandler } = require("./middleware/errorHandler");
 
 dotenv.config();
 
@@ -12,12 +13,13 @@ const app = express();
 app.use(express.json());
 
 
-app.get("/", (req, res) => {
+app.get("/", protect, (req, res) => {
   res.send("API running...");
 });
 
 const PORT = process.env.PORT || 5000;
 
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

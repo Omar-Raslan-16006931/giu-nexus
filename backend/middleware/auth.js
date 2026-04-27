@@ -11,7 +11,9 @@ exports.protect = (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ message: "No token, not authorized" });
+   const error = new Error("No token, not authorized");
+   error.statusCode = 401;
+   return next(error);
   }
 
   try {
@@ -28,7 +30,9 @@ exports.protect = (req, res, next) => {
     next();
 
   } catch (err) {
-    return res.status(401).json({ message: "Token is not valid" });
+    const error = new Error("Token is not valid");
+    error.statusCode = 401;
+    return next(error);
   }
 };
 
@@ -37,7 +41,9 @@ exports.authorize = (...roles) => {
     console.log("User role:", req.user.role);
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Forbidden" });
+      const error = new Error("Forbidden");
+      error.statusCode = 403;
+      return next(error);
     }
 
     next();
