@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const {protect, authorize } = require("./middleware/auth");
 const { errorHandler } = require("./middleware/errorHandler");
+const sendEmail = require("./services/emailService");
 
 dotenv.config();
 
@@ -11,6 +12,8 @@ connectDB();
 const app = express();
 
 app.use(express.json());
+
+
 
 
 app.get("/", protect, (req, res) => {
