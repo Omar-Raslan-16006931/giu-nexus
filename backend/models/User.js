@@ -33,7 +33,8 @@ const userSchema = new mongoose.Schema({
     enum: ["jobSeeker","recruiter","admin"],
     default: "jobSeeker",
   },
-
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   // only applies if role = recruiter
   status: {
     type: String,
@@ -47,14 +48,31 @@ const userSchema = new mongoose.Schema({
 });
 
 // hash the password before saving the user
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
-   this.password = await bcrypt.hash(this.password, 10);
-    next();
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
+const crypto = require("crypto");
+
+userSchema.methods.getResetPasswordToken = function () {
+  // generate raw token
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  // hash token and store
+  this.resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // set expiry 10 mins
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  // return raw token
+  return resetToken;
+};
 
 module.exports = mongoose.model("User", userSchema);

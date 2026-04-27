@@ -1,11 +1,11 @@
+require("dotenv").config();  
+
 const express = require("express");
-const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const {protect, authorize } = require("./middleware/auth");
+const { protect, authorize } = require("./middleware/auth");
 const { errorHandler } = require("./middleware/errorHandler");
 const sendEmail = require("./services/emailService");
-
-dotenv.config();
+const authRoutes = require("./routes/authRoutes");
 
 connectDB();
 
@@ -21,6 +21,14 @@ app.get("/", protect, (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
+app.use("/api/v1/auth", authRoutes);
+
+
+
+
+
+
+
 
 app.use(errorHandler);
 
