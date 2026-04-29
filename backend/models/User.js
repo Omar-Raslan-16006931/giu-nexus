@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
     type:String,
     enum: ["jobSeeker","recruiter","admin"],
     default: "jobSeeker",
+    lowercase: true,
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
@@ -39,6 +40,7 @@ const userSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
+    lowercase: true,
   },
 
   createdAt: {
