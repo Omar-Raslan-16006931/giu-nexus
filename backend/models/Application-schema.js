@@ -18,6 +18,7 @@ const applicationSchema = new moogose.Schema({
         type: String,
         enum: ["pending", "shortlisted", "rejected"],
         default: "pending",
+        lowercase: true,
     },
     appliedAt: {
         type: Date,

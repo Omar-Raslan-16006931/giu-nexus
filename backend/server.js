@@ -16,7 +16,9 @@ const app = express();
 app.use(express.json());
 
 
+const jobRoutes = require("./routes/jobRoutes");
 
+app.use("/api/v1/jobs", jobRoutes);
 
 app.get("/", protect, (req, res) => {
   res.send("API running...");
