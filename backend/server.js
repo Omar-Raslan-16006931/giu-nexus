@@ -1,41 +1,32 @@
-require("dotenv").config();  
+require("dotenv").config();
 
 const express = require("express");
 const connectDB = require("./config/db");
-const { protect, authorize } = require("./middleware/auth");
 const { errorHandler } = require("./middleware/errorHandler");
-const sendEmail = require("./services/emailService");
-const authRoutes = require("./routes/authRoutes");
-const hf = require("./services/hfService");
 
+const authRoutes = require("./routes/authRoutes");
+const jobRoutes = require("./routes/jobRoutes");
+const profileRoutes = require("./routes/profileRoutes");
 
 connectDB();
 
 const app = express();
-
 app.use(express.json());
 
 
-const jobRoutes = require("./routes/jobRoutes");
-
-app.use("/api/v1/jobs", jobRoutes);
-
-app.get("/", protect, (req, res) => {
+app.get("/", (req, res) => {
   res.send("API running...");
 });
 
-const PORT = process.env.PORT || 5000;
+// routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/jobs", jobRoutes);
+app.use("/api/v1/profile", profileRoutes);
 
-
-
-
-
-
-
-
+// error handler (must be last)
 app.use(errorHandler);
 
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
