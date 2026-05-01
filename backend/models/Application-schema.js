@@ -1,6 +1,6 @@
-const moogoose = require('mongoose');
+const mongoose = require('mongoose');
 
-const applicationSchema = new moogose.Schema({
+const applicationSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
