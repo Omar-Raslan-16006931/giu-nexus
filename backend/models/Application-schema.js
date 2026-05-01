@@ -1,6 +1,6 @@
-const moogoose = require('mongoose');
+const mongoose = require('mongoose');
 
-const applicationSchema = new moogose.Schema({
+const applicationSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -8,11 +8,12 @@ const applicationSchema = new moogose.Schema({
     },
     job: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "JobPost", 
+        ref: "JobPost",
         required: true,
     },
     coverLetter: {
         type: String,
+        default: "",
     },
     status: {
         type: String,
@@ -25,11 +26,7 @@ const applicationSchema = new moogose.Schema({
     },
 });
 
-// prevent duplicate applications 
-  applicationSchema.index(
-  { user: 1, job: 1 },
-  { unique: true }
-);
-
+// Prevent duplicate applications at the DB level
+applicationSchema.index({ user: 1, job: 1 }, { unique: true });
 
 module.exports = mongoose.model("Application", applicationSchema);
