@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    minlength: 6,
   },
   profilePicture: {
     type: String,
@@ -30,13 +31,14 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type:String,
-    enum: ["jobSeeker","recruiter","admin"],
-    default: "jobSeeker",
+    enum: ["jobseeker","recruiter","admin"],
+    default: "jobseeker",
     lowercase: true,
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   // only applies if role = recruiter
+
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
