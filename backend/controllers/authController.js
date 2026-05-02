@@ -223,3 +223,23 @@ exports.login = async (req, res, next) => {
     next(err);
   }
 };
+
+//LOGOUT
+const { addToBlacklist } = require("../utils/tokenBlacklist");
+
+exports.logout = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (token) {
+      addToBlacklist(token);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
