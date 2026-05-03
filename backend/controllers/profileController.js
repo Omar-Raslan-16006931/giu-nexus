@@ -79,3 +79,34 @@ exports.extractSkills = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getProfile = async (req, res, next) => {
+  try {
+   
+    
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        skills: user.skills,
+        profilePicture: user.profilePicture,
+        role: user.role,
+        status: user.status,
+     },
+   });
+
+  } catch (err) {
+    next(err);
+  }
+};
