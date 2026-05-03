@@ -110,3 +110,46 @@ exports.getProfile = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { name, bio, profilePicture } = req.body || {};
+
+    if (Object.keys(req.body || {}).length === 0) {
+     return res.status(400).json({
+     success: false,
+     message: "No fields provided to update",
+     });
+   }
+    
+    
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (bio !== undefined) updates.bio = bio;
+    if (profilePicture !== undefined) updates.profilePicture = profilePicture;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updates,
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
+    ).select("-password -__v");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
