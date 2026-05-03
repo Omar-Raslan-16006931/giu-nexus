@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const hf = require("../services/hfService");
+const bcrypt = require("bcrypt");
+
 
 exports.extractSkills = async (req, res, next) => {
   try {
@@ -80,6 +82,8 @@ exports.extractSkills = async (req, res, next) => {
   }
 };
 
+
+
 exports.getProfile = async (req, res, next) => {
   try {
    
@@ -110,6 +114,8 @@ exports.getProfile = async (req, res, next) => {
     next(err);
   }
 };
+
+
 
 exports.updateProfile = async (req, res, next) => {
   try {
@@ -147,6 +153,59 @@ exports.updateProfile = async (req, res, next) => {
     res.status(200).json({
       success: true,
       user,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Both currentPassword and newPassword are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+
+    
+    user.password = newPassword;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
     });
 
   } catch (err) {
