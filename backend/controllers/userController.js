@@ -256,3 +256,42 @@ exports.getAdminStats = async (req, res, next) => {
 };
 
 
+exports.getUsers = async (req, res, next) => {
+  try {
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    
+    const filter = {};
+
+    if (req.query.role) {
+      filter.role = req.query.role;
+    }
+
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    
+    const users = await User.find(filter)
+      .select("_id name email role status createdAt") // important: only needed fields
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    
+    const total = await User.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      total,
+      page,
+      users,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
