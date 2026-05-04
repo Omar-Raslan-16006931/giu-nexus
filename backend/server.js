@@ -23,6 +23,10 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/admin", require("./routes/adminRoutes"));
+
+
+
 // error handler (must be last)
 app.use(errorHandler);
 
