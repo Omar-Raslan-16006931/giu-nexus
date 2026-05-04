@@ -4,10 +4,15 @@ const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      role: user.role   
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 };
 
 
@@ -87,7 +92,7 @@ exports.resetPassword = async (req, res, next) => {
     await user.save();
 
     
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(200).json({
       success: true,
@@ -151,7 +156,7 @@ exports.register = async (req, res, next) => {
     });
 
    
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     
     res.status(201).json({
@@ -203,7 +208,7 @@ exports.login = async (req, res, next) => {
       });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(200).json({
       success: true,
