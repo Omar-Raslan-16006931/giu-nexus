@@ -143,3 +143,57 @@ exports.getRecommendedJobs = async (req, res, next) => {
     next(err);
   }
 };
+
+
+
+exports.getJobs = async (req, res, next) => {
+  try {
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // build filter
+    const filter = {};
+
+    
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    if (req.query.type) {
+      filter.type = req.query.type;
+    }
+
+    if (req.query.location) {
+      filter.location = req.query.location;
+    }
+
+    
+    if (req.query.keyword) {
+      filter.$or = [
+        { title: { $regex: req.query.keyword, $options: "i" } },
+        { description: { $regex: req.query.keyword, $options: "i" } },
+      ];
+    }
+
+    
+    const jobs = await JobPost.find(filter)
+      .sort({ createdAt: -1 }) 
+      .skip(skip)
+      .limit(limit);
+
+    
+    const total = await JobPost.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      total,
+      page,
+      jobs,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
