@@ -2,24 +2,62 @@ const JobPost = require("../models/jobPost-schema");
 const hf = require("../services/hfService");
 const User = require("../models/User");
 
+
 exports.createJob = async (req, res, next) => {
   try {
+   
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    
+    if (user.role !== "recruiter") {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters can create jobs",
+      });
+    }
+
+    
+    if (user.status !== "approved") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is pending approval . Wait for admin approval before posting jobs.",
+      });
+    }
+
     const {
       title,
+      company,
       description,
       requirements,
-      company,
       location,
       type,
+      salary,
       totalSlots,
     } = req.body;
 
-    if (!title || !description || !company || !location || !type || !totalSlots) {
-      const error = new Error("Missing required fields");
-      error.statusCode = 400;
-      return next(error);
+    
+    if (
+      !title ||
+      !company ||
+      !description ||
+      !requirements ||
+      !location ||
+      !type
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
     }
 
+    
     let category = "Other";
 
     try {
@@ -28,39 +66,44 @@ exports.createJob = async (req, res, next) => {
         inputs: description,
         parameters: {
           candidate_labels: [
-            "Frontend Development",
-            "Backend Development",
-            "Artificial Intelligence",
-            "DevOps Engineering",
+            "Frontend",
+            "Backend",
+            "AI/ML",
+            "DevOps",
             "Data Engineering",
             "Other",
           ],
         },
       });
 
-     
-      if (Array.isArray(result) && result.length > 0 && result[0].label) {
-        category = result[0].label;
-      } else if (result.labels && result.labels.length > 0) {
-        category = result.labels[0];
+      
+
+      
+      if (Array.isArray(result) && result.length > 0) {
+        category = result[0].label || "Other";
       }
 
     } catch (err) {
-      console.error("HF classification failed:", err.message);
+      console.log("AI classification failed:", err.message);
+      
     }
 
+    
     const job = await JobPost.create({
       title,
-      description,
-      requirements: requirements || [],
       company,
+      description,
+      requirements,
       location,
-      type: type.toLowerCase(),
-      totalSlots,
-      createdBy: req.user.id,
+      type,
+      salary,
+      totalSlots: totalSlots || 1,
       category,
+      status: "open",
+      createdBy: user._id,
     });
 
+   
     res.status(201).json({
       success: true,
       job,
@@ -70,7 +113,6 @@ exports.createJob = async (req, res, next) => {
     next(err);
   }
 };
-
 
 exports.getRecommendedJobs = async (req, res, next) => {
   try {
