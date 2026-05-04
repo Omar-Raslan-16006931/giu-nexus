@@ -76,7 +76,7 @@ exports.createJob = async (req, res, next) => {
         },
       });
 
-      console.log("HF RESULT:", result);
+      
 
       
       if (Array.isArray(result) && result.length > 0) {
