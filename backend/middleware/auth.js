@@ -36,7 +36,7 @@ exports.protect = (req, res, next) => {
       id: decoded.id,
       role: decoded.role, 
     };
-
+    
     next();
   } catch (err) {
     const error = new Error("Token is not valid");
@@ -49,6 +49,7 @@ exports.protect = (req, res, next) => {
 
 exports.authorize = (...roles) => {
   return (req, res, next) => {
+    
     if (!req.user) {
       const error = new Error("Not authorized");
       error.statusCode = 401;
