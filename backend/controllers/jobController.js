@@ -391,3 +391,49 @@ exports.updateJob = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.deleteJob = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+   
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    const job = await JobPost.findById(id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    const isAdmin = req.user.role === "admin";
+    const isOwner = job.createdBy.toString() === req.user.id;
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorised to delete this job",
+      });
+    }
+
+    
+    await job.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Job deleted",
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
