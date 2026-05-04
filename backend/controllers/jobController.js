@@ -1,7 +1,7 @@
 const JobPost = require("../models/jobPost-schema");
 const hf = require("../services/hfService");
 const User = require("../models/User");
-
+const mongoose = require("mongoose");
 
 exports.createJob = async (req, res, next) => {
   try {
@@ -233,6 +233,158 @@ exports.getJobs = async (req, res, next) => {
       total,
       page,
       jobs,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getJobById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    const job = await JobPost.findById(id)
+      .populate("createdBy", "-_id name email");
+    
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+    const jobResponse = {
+     _id: job._id,
+     title: job.title,
+     description: job.description,
+     requirements: job.requirements,
+     category: job.category,
+     status: job.status,
+     createdBy: job.createdBy,
+    };
+
+
+    
+    res.status(200).json({
+      success: true,
+      job: jobResponse,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+exports.updateJob = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    const job = await JobPost.findById(id);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    if (job.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorised to edit this job",
+      });
+    }
+
+    
+    const allowedFields = [
+      "title",
+      "company",
+      "description",
+      "requirements",
+      "location",
+      "type",
+      "salary",
+      "totalSlots",
+      "status",
+    ];
+
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        job[field] = req.body[field];
+      }
+    });
+
+    
+    if (req.body.description) {
+      let category = "Other";
+
+      try {
+        const result = await hf.zeroShotClassification({
+          model: "facebook/bart-large-mnli",
+          inputs: req.body.description,
+          parameters: {
+            candidate_labels: [
+              "Frontend",
+              "Backend",
+              "AI/ML",
+              "DevOps",
+              "Data Engineering",
+              "Other",
+            ],
+          },
+        });
+
+        if (Array.isArray(result) && result.length > 0) {
+          const top = result[0];
+
+          if (top.score >= 0.4 && top.label !== "Other") {
+            category = top.label;
+          }
+        }
+
+      } catch (err) {
+        console.log("AI classification failed:", err.message);
+      }
+
+      job.category = category;
+    }
+
+   
+    await job.save();
+
+   
+    const jobResponse = {
+      _id: job._id,
+      title: job.title,
+      description: job.description,
+      requirements: job.requirements,
+      category: job.category,
+      status: job.status,
+    };
+
+    res.status(200).json({
+      success: true,
+      job: jobResponse,
     });
 
   } catch (err) {
