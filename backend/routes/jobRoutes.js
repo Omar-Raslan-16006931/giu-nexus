@@ -1,15 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const { createJob, getRecommendedJobs } = require("../controllers/jobController");
-const { applyToJob, getApplicants } = require("../controllers/applicationController");
+
+const {updateJob,deleteJob, createJob,getJobs , getJobById} = require("../controllers/jobController");
 const { protect, authorize } = require("../middleware/auth");
+const { getRecommendedJobs } = require("../controllers/jobController");
 
-//other routes
-router.get("/recommended", protect, authorize("jobSeeker"), getRecommendedJobs);
+
+router.get("/:id", getJobById);
+router.get("/", getJobs);
+router.get("/recommended", protect, getRecommendedJobs);
 router.post("/", protect, authorize("recruiter"), createJob);
+router.patch("/:id", protect, authorize("recruiter"), updateJob);
+router.delete("/:id", protect, authorize("recruiter", "admin"), deleteJob);
 
-// yassin shahin routes 
-router.post("/:jobId/apply", protect, authorize("jobSeeker"), applyToJob);
-router.get("/:jobId/applicants", protect, authorize("recruiter"), getApplicants);
+
+
 
 module.exports = router;
