@@ -34,16 +34,11 @@ exports.applyToJob = async (req, res, next) => {
     }
 
     
-    const applicationData = {
+    const application = await Application.create({
       user: userId,
       job: jobId,
-    };
-
-    if (req.body.coverLetter) {
-      applicationData.coverLetter = req.body.coverLetter;
-    }
-
-    const application = await Application.create(applicationData);
+      coverLetter: req.body.coverLetter || "",
+    });
 
     res.status(201).json({
       success: true,
