@@ -7,6 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const applicationRoutes = require("./routes/applicationRoutes");
 
 connectDB();
 
@@ -24,7 +25,7 @@ app.use("/api/v1/jobs", jobRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/admin", require("./routes/adminRoutes"));
-
+app.use("/api/v1/applications", applicationRoutes);
 
 
 // error handler (must be last)
