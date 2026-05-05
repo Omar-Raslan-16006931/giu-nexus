@@ -142,3 +142,63 @@ exports.getAllApplications = async (req, res, next) => {
     next(err);
   }
 };
+
+
+// update application status by recruiter
+
+exports.updateApplicationStatus = async (req, res, next) => {
+  try {
+    const applicationId = req.params.id;
+    const { status } = req.body;
+
+    
+    if (req.user.role !== "recruiter") {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters can update applications",
+      });
+    }
+
+    
+    const allowedStatuses = ["pending", "shortlisted", "rejected"];
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    
+    const application = await Application.findById(applicationId).populate("job");
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    
+    if (application.job.createdBy.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorised to update this application",
+      });
+    }
+
+    
+    application.status = status;
+    await application.save();
+
+    res.status(200).json({
+     success: true,
+     application: {
+     _id: application._id,
+     status: application.status,
+     },
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
