@@ -56,7 +56,7 @@ exports.applyToJob = async (req, res, next) => {
     next(err);
   }
 };
-
+// for recruiter to view applicants for a job
 exports.getJobApplicants = async (req, res, next) => {
   try {
     const jobId = req.params.jobId;
@@ -93,6 +93,48 @@ exports.getJobApplicants = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      applications,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+// get all applications for admin only
+
+exports.getAllApplications = async (req, res, next) => {
+  try {
+    
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin only",
+      });
+    }
+
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    
+    const applications = await Application.find()
+      .skip(skip)
+      .limit(limit)
+      .select("-__v")
+      .populate("user", "name email")
+      .populate("job", "title company");
+
+    
+    const total = await Application.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      total,
+      page,
       applications,
     });
 
