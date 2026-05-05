@@ -56,3 +56,47 @@ exports.applyToJob = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getJobApplicants = async (req, res, next) => {
+  try {
+    const jobId = req.params.jobId;
+    const userId = req.user.id;
+
+    
+    if (req.user.role !== "recruiter") {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters can view applicants",
+      });
+    }
+
+    
+    const job = await JobPost.findById(jobId);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    if (job.createdBy.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorised to view applicants for this job",
+      });
+    }
+
+   
+    const applications = await Application.find({ job: jobId })
+      .populate("user", "name email skills");
+
+    res.status(200).json({
+      success: true,
+      applications,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
