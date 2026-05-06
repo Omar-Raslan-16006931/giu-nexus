@@ -44,6 +44,13 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   }
+
+  savedJobs: [
+  {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "JobPost"
+  }
+]
 });
 
 // hash the password before saving the user
