@@ -27,12 +27,13 @@ const jobPostSchema = new mongoose.Schema({
         type: String,
         enum: ["full-time", "part-time", "internship"],
         required: true,
+        lowercase: true,
     },
 
     salary: {
         type: Number,
     },
-//The category field will be auto-assigned by the AI when a recruiter creates a post —
+
     category: {
         type: String,
     },
@@ -45,6 +46,7 @@ const jobPostSchema = new mongoose.Schema({
         type: String,
         enum: ["open", "closed"],
         default: "open",
+        lowercase: true,
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
