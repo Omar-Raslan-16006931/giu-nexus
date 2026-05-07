@@ -130,7 +130,7 @@ exports.getRecommendedJobs = async (req, res, next) => {
       : "general";
 
     const jobTexts = jobs.map(job =>
-      ${job.title} ${job.requirements.join(", ")}
+      `${job.title} ${job.requirements.join(", ")}`
     );
 
     let embeddings;
