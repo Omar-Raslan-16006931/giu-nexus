@@ -505,3 +505,56 @@ exports.toggleSaveJob = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getSavedJobs = async (req, res, next) => {
+  try {
+
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only job seekers can view saved jobs",
+      });
+    }
+
+    const user = await User.findById(req.user.id)
+      .populate(
+       "savedJobs",
+       "title company location type category status"
+      );
+
+    res.status(200).json({
+      success: true,
+      jobs: user.savedJobs,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+exports.getMyJobs = async (req, res, next) => {
+  try {
+
+    if (req.user.role !== "recruiter") {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters can view their jobs",
+      });
+    }
+
+    const jobs = await JobPost.find({
+      createdBy: req.user.id,
+    })
+      .select("_id title status type createdAt")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      jobs,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
