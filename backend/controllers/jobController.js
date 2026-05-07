@@ -15,7 +15,6 @@ exports.createJob = async (req, res, next) => {
       });
     }
 
-    
     if (user.role !== "recruiter") {
       return res.status(403).json({
         success: false,
@@ -23,7 +22,6 @@ exports.createJob = async (req, res, next) => {
       });
     }
 
-    
     if (user.status !== "approved") {
       return res.status(403).json({
         success: false,
@@ -431,6 +429,76 @@ exports.deleteJob = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "Job deleted",
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.toggleSaveJob = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const jobId = req.params.id;
+
+    
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only job seekers can save jobs",
+      });
+    }
+
+    
+    const job = await JobPost.findById(jobId);
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    
+    if (job.status !== "open") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot save a closed job",
+      });
+    }
+
+    
+    const user = await User.findById(userId);
+
+    
+    const alreadySaved = user.savedJobs.some(
+      (id) => id.toString() === jobId
+   );
+
+    
+    if (alreadySaved) {
+      user.savedJobs = user.savedJobs.filter(
+        (id) => id.toString() !== jobId
+      );
+
+      await user.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "Job removed from saved",
+        saved: false,
+      });
+    }
+
+    
+    user.savedJobs.push(jobId);
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Job saved",
+      saved: true,
     });
 
   } catch (err) {
