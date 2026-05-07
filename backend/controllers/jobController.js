@@ -505,3 +505,29 @@ exports.toggleSaveJob = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getSavedJobs = async (req, res, next) => {
+  try {
+
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only job seekers can view saved jobs",
+      });
+    }
+
+    const user = await User.findById(req.user.id)
+      .populate(
+       "savedJobs",
+       "title company location type category status"
+      )
+
+    res.status(200).json({
+      success: true,
+      jobs: user.savedJobs,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};

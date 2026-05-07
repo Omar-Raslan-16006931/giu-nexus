@@ -7,9 +7,9 @@ const { getProfile } = require("../controllers/profileController");
 const { updateProfile } = require("../controllers/profileController");
 
 
-router.patch("/change-password", protect, changePassword);
-router.patch("/", protect, updateProfile);
 router.get("/", protect, getProfile);
+router.patch("/", protect, updateProfile);
+router.patch("/change-password", protect, changePassword);
 router.post("/extract-skills", protect, extractSkills);
 
 module.exports = router;
