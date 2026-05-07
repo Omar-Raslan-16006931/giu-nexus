@@ -42,7 +42,12 @@ const userSchema = new mongoose.Schema({
       ref: "JobPost",
     },
   ],
-
+  otpCode: String,
+  otpExpire: Date,
+  otpVerified: {
+  type: Boolean,
+  default: false,
+  },
 
 
   resetPasswordToken: String,

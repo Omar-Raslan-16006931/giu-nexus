@@ -29,24 +29,40 @@ exports.forgotPassword = async (req, res, next) => {
       });
     }
 
-    const resetToken = user.getResetPasswordToken();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     
+    user.otpCode = otp;
+    user.otpExpire = Date.now() + 5 * 60 * 1000;
+    user.otpVerified = false;
+
+    
+    const resetToken = user.getResetPasswordToken();
+
     await user.save({ validateBeforeSave: false });
 
     const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
 
-    const message = `You requested a password reset.\n\nUse this link:\n${resetUrl}\n\nThis link expires in 10 minutes.`;
+    
+    const message = `
+     Your OTP code is: ${otp}
+
+     After verifying OTP, use this reset link:
+
+     ${resetUrl}
+
+     This OTP and link expire in 5 minutes.
+    `;
 
     await sendEmail({
       to: user.email,
-      subject: "Password Reset",
+      subject: "Password Reset OTP",
       text: message,
     });
 
     res.status(200).json({
       success: true,
-      message: "Email sent",
+      message: "OTP email sent",
     });
 
   } catch (err) {
@@ -54,6 +70,42 @@ exports.forgotPassword = async (req, res, next) => {
   }
 };
 
+exports.verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (
+      user.otpCode !== otp ||
+      user.otpExpire < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
+
+    user.otpVerified = true;
+
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: "OTP verified",
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
 
 // RESET PASSWORD
 
@@ -76,7 +128,15 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
-   
+    
+    if (!user.otpVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "OTP verification required",
+      });
+    }
+
+    
     if (!req.body.password || req.body.password.length < 6) {
       return res.status(400).json({
         success: false,
@@ -84,10 +144,17 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
+    
     user.password = req.body.password;
 
+    
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
+
+    
+    user.otpCode = undefined;
+    user.otpExpire = undefined;
+    user.otpVerified = false;
 
     await user.save();
 
@@ -104,7 +171,6 @@ exports.resetPassword = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // REGISTER
 
