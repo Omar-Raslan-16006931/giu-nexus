@@ -520,11 +520,38 @@ exports.getSavedJobs = async (req, res, next) => {
       .populate(
        "savedJobs",
        "title company location type category status"
-      )
+      );
 
     res.status(200).json({
       success: true,
       jobs: user.savedJobs,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+exports.getMyJobs = async (req, res, next) => {
+  try {
+
+    if (req.user.role !== "recruiter") {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters can view their jobs",
+      });
+    }
+
+    const jobs = await JobPost.find({
+      createdBy: req.user.id,
+    })
+      .select("_id title status type createdAt")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      jobs,
     });
 
   } catch (err) {

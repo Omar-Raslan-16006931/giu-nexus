@@ -2,11 +2,13 @@ const express = require("express");
 const router = express.Router();
 
 const { protect } = require("../middleware/auth");
-const { updateApplicationStatus,applyToJob ,getJobApplicants,getAllApplications} = require("../controllers/applicationController");
+const { getMyApplications,updateApplicationStatus,applyToJob ,getJobApplicants,getAllApplications} = require("../controllers/applicationController");
 
-router.get("/applications", protect, getAllApplications);
-router.patch("/applications/:id/status",protect,updateApplicationStatus);
+router.get("/my",protect,getMyApplications);
+router.get("/", protect, getAllApplications);
+router.patch("/:id/status",protect,updateApplicationStatus);
 router.post("/jobs/:jobId/apply", protect,applyToJob);
 router.get("/jobs/:jobId/applicants",protect,getJobApplicants);
+
 
 module.exports = router;

@@ -202,3 +202,33 @@ exports.updateApplicationStatus = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getMyApplications = async (req, res, next) => {
+  try {
+
+    if (req.user.role !== "jobseeker") {
+      return res.status(403).json({
+        success: false,
+        message: "Only job seekers can view their applications",
+      });
+    }
+
+    const applications = await Application.find({
+      user: req.user.id,
+    })
+      .select("_id status appliedAt job")
+      .populate(
+        "job",
+        "_id title company type status"
+      )
+      .sort({ appliedAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      applications,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
