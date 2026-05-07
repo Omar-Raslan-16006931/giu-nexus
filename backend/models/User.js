@@ -35,6 +35,16 @@ const userSchema = new mongoose.Schema({
     default: "jobseeker",
     lowercase: true,
   },
+
+  savedJobs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "JobPost",
+    },
+  ],
+
+
+
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   // only applies if role = recruiter
@@ -63,19 +73,19 @@ userSchema.pre("save", async function () {
 const crypto = require("crypto");
 
 userSchema.methods.getResetPasswordToken = function () {
-  // generate raw token
+  
   const resetToken = crypto.randomBytes(20).toString("hex");
 
-  // hash token and store
+  
   this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
 
-  // set expiry 10 mins
+ 
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
-  // return raw token
+  
   return resetToken;
 };
 
