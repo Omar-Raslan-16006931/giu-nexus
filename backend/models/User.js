@@ -94,4 +94,21 @@ userSchema.methods.getResetPasswordToken = function () {
   return resetToken;
 };
 
+userSchema.methods.toJSON = function () {
+
+  const userObject = this.toObject();
+
+  delete userObject.password;
+  delete userObject.__v;
+
+  delete userObject.otpCode;
+  delete userObject.otpExpire;
+  delete userObject.otpVerified;
+
+  delete userObject.resetPasswordToken;
+  delete userObject.resetPasswordExpire;
+
+  return userObject;
+};
+
 module.exports = mongoose.model("User", userSchema);

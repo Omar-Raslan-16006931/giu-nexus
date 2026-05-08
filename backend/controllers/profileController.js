@@ -148,7 +148,9 @@ exports.updateProfile = async (req, res, next) => {
         returnDocument: "after",
         runValidators: true,
       }
-    ).select("-password -__v");
+    ).select(
+      "-password -__v -otpCode -otpExpire -otpVerified -resetPasswordToken -resetPasswordExpire"
+    );
 
     if (!user) {
       return res.status(404).json({
