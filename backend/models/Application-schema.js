@@ -25,6 +25,9 @@ const applicationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+},{
+  timestamps: true,
+  versionKey: false
 });
 
 // prevent duplicate applications 
