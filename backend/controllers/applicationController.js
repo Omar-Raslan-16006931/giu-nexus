@@ -20,7 +20,12 @@ exports.applyToJob = async (req, res, next) => {
         message: "Job not found",
       });
     }
-
+    if (job.status === "closed") {
+     return res.status(400).json({
+     success: false,
+     message: "Cannot apply to a closed job",
+     });
+    }
     const existing = await Application.findOne({
       user: userId,
       job: jobId,

@@ -130,8 +130,14 @@ exports.getRecommendedJobs = async (req, res, next) => {
       : "general";
 
     const jobTexts = jobs.map(job =>
-      `${job.title} ${job.requirements.join(", ")}`
+    `
+     ${job.title}
+     ${job.description}
+     ${job.category}
+     ${job.requirements.join(", ")}
+    `
     );
+    
 
     let embeddings;
 
@@ -176,7 +182,10 @@ exports.getRecommendedJobs = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      jobs: scoredJobs.map(item => item.job),
+      jobs: scoredJobs.map(item => ({
+        ...item.job.toObject(),
+        score: Number(item.score.toFixed(2)),
+     })),
     });
 
   } catch (err) {

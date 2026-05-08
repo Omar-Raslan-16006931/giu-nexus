@@ -20,7 +20,71 @@ const generateToken = (user) => {
 
 exports.forgotPassword = async (req, res, next) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+
+    const user = await User.findOne({
+      email: req.body.email,
+    });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message:
+          "OTP has been sent",
+      });
+    }
+
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    
+    user.otpCode = otp;
+    user.otpExpire = Date.now() + 5 * 60 * 1000;
+    user.otpVerified = false;
+
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({
+      validateBeforeSave: false,
+    });
+
+    const message = `
+Your OTP code is: ${otp}
+
+After verifying OTP, use this token:
+
+${resetToken}
+
+This OTP and link expire in 5 minutes.
+`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Password Reset OTP",
+      text: message,
+    });
+
+    
+    return res.status(200).json({
+      success: true,
+      message:
+        "OTP has been sent",
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.verifyOtp = async (req, res, next) => {
+  try {
+
+    const email = req.body.email?.trim().toLowerCase();
+
+    const otpCode = String(
+      req.body.otpCode
+    ).trim();
+
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(404).json({
@@ -29,31 +93,31 @@ exports.forgotPassword = async (req, res, next) => {
       });
     }
 
-    const resetToken = user.getResetPasswordToken();
+    if (
+      user.otpCode !== otpCode ||
+      user.otpExpire < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP",
+      });
+    }
 
-    
-    await user.save({ validateBeforeSave: false });
+    user.otpVerified = true;
 
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
-
-    const message = `You requested a password reset.\n\nUse this link:\n${resetUrl}\n\nThis link expires in 10 minutes.`;
-
-    await sendEmail({
-      to: user.email,
-      subject: "Password Reset",
-      text: message,
+    await user.save({
+      validateBeforeSave: false,
     });
 
     res.status(200).json({
       success: true,
-      message: "Email sent",
+      message: "OTP verified",
     });
 
   } catch (err) {
     next(err);
   }
 };
-
 
 // RESET PASSWORD
 
@@ -76,7 +140,15 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
-   
+    
+    if (!user.otpVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "OTP verification required",
+      });
+    }
+
+    
     if (!req.body.password || req.body.password.length < 6) {
       return res.status(400).json({
         success: false,
@@ -84,10 +156,17 @@ exports.resetPassword = async (req, res, next) => {
       });
     }
 
+    
     user.password = req.body.password;
 
+    
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
+
+    
+    user.otpCode = undefined;
+    user.otpExpire = undefined;
+    user.otpVerified = false;
 
     await user.save();
 
@@ -104,7 +183,6 @@ exports.resetPassword = async (req, res, next) => {
     next(err);
   }
 };
-
 
 // REGISTER
 
