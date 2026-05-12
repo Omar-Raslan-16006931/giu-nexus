@@ -8,13 +8,13 @@ const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
-
+const cors = require("cors");
 
 connectDB();
 
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 
 app.get("/", (req, res) => {
   res.send("API running...");
