@@ -116,23 +116,30 @@ exports.getProfile = async (req, res, next) => {
 };
 
 
-
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, bio, profilePicture } = req.body || {};
+    const { name, bio } = req.body || {};
 
-    if (Object.keys(req.body || {}).length === 0) {
-     return res.status(400).json({
-     success: false,
-     message: "No fields provided to update",
-     });
-   }
-    
-    
+    if (
+      Object.keys(req.body || {}).length === 0 &&
+      !req.file
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "No fields provided to update",
+      });
+    }
+
     const updates = {};
+
     if (name !== undefined) updates.name = name;
     if (bio !== undefined) updates.bio = bio;
-    if (profilePicture !== undefined) updates.profilePicture = profilePicture;
+
+   
+    if (req.file) {
+      updates.profilePicture =
+        `/uploads/${req.file.filename}`;
+    }
 
     const user = await User.findByIdAndUpdate(
       req.user.id,
@@ -141,7 +148,9 @@ exports.updateProfile = async (req, res, next) => {
         returnDocument: "after",
         runValidators: true,
       }
-    ).select("-password -__v");
+    ).select(
+      "-password -__v -otpCode -otpExpire -otpVerified -resetPasswordToken -resetPasswordExpire"
+    );
 
     if (!user) {
       return res.status(404).json({
@@ -159,7 +168,6 @@ exports.updateProfile = async (req, res, next) => {
     next(err);
   }
 };
-
 
 
 exports.changePassword = async (req, res, next) => {

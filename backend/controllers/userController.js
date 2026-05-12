@@ -123,7 +123,8 @@ exports.deleteUser = async (req, res, next) => {
 
 exports.getAdminStats = async (req, res, next) => {
   try {
-    
+
+    // USERS BY ROLE
     const users = await User.aggregate([
       {
         $group: {
@@ -133,122 +134,195 @@ exports.getAdminStats = async (req, res, next) => {
       },
     ]);
 
-    
-    const usersByRole = {};
+    const usersByRole = {
+      jobSeeker: 0,
+      recruiter: 0,
+      admin: 0,
+    };
 
     users.forEach((item) => {
-     if (item._id === "jobseeker") {
-     usersByRole["jobSeeker"] = item.count;
-    }
 
-    if (item._id === "recruiter") {
-     usersByRole["recruiter"] = item.count;
-     }
+      if (item._id === "jobseeker") {
+        usersByRole.jobSeeker = item.count;
+      }
+
+      if (item._id === "recruiter") {
+        usersByRole.recruiter = item.count;
+      }
+
+      if (item._id === "admin") {
+        usersByRole.admin = item.count;
+      }
+
     });
- 
+
+
+
+    // JOBS BY STATUS
     const jobs = await JobPost.aggregate([
       {
         $group: {
-        _id: "$status",
-        count: { $sum: 1 },
-       },
-     },
-   ]);
-    
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
     const jobsByStatus = {};
 
     jobs.forEach((item) => {
       jobsByStatus[item._id] = item.count;
-   });
-    
+    });
 
+
+
+    // APPLICATIONS BY STATUS
     const applications = await Application.aggregate([
-     {
-      $group: {
-      _id: "$status",
-      count: { $sum: 1 },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
       },
-     },
     ]);
 
- 
-     const appsByStatus = {
+    const appsByStatus = {
       pending: 0,
       shortlisted: 0,
       rejected: 0,
     };
 
     applications.forEach((item) => {
-     if (item._id === "pending") {
-     appsByStatus.pending = item.count;
-    }
 
-    if (item._id === "shortlisted") {
-     appsByStatus.shortlisted = item.count;
-    }
+      if (item._id === "pending") {
+        appsByStatus.pending = item.count;
+      }
 
-    if (item._id === "rejected") {
-     appsByStatus.rejected = item.count;
-    }
+      if (item._id === "shortlisted") {
+        appsByStatus.shortlisted = item.count;
+      }
+
+      if (item._id === "rejected") {
+        appsByStatus.rejected = item.count;
+      }
+
     });
 
-   const topJobsRaw = await Application.aggregate([
-     
-    {
-      $group: {
-      _id: "$job", 
-      applicationCount: { $sum: 1 },
+
+
+    // TOP JOBS
+    const topJobsRaw = await Application.aggregate([
+
+      {
+        $group: {
+          _id: "$job",
+          applicationCount: { $sum: 1 },
+        },
       },
-    },
 
-       
-    {
-      $sort: { applicationCount: -1 },
-    },
+      {
+        $sort: {
+          applicationCount: -1,
+        },
+      },
 
-      
-    {
-      $limit: 3,
-    },
+      {
+        $limit: 3,
+      },
 
-     
-    {
-      $lookup: {
-      from: "jobposts",
-      localField: "_id",
-      foreignField: "_id",
-      as: "job",
+      {
+        $lookup: {
+          from: "jobposts",
+          localField: "_id",
+          foreignField: "_id",
+          as: "job",
+        },
+      },
+
+      {
+        $unwind: "$job",
+      },
+
+      {
+        $project: {
+          _id: "$job._id",
+          title: "$job.title",
+          company: "$job.company",
+          applicationCount: 1,
+        },
+      },
+
+    ]);
+    
+  const applicationsPerWeek = await Application.aggregate([
+  {
+    $group: {
+
+      _id: {
+        year: { $year: "$appliedAt" },
+        week: { $week: "$appliedAt" },
+      },
+
+      count: {
+        $sum: 1,
+      },
+
+      firstDate: {
+        $min: "$appliedAt",
+      },
+
+      lastDate: {
+        $max: "$appliedAt",
+      },
+
+    },
+  },
+  {
+    $sort: {
+      firstDate: 1,
+    },
+  },
+  {
+    $limit: 4,
+  },
+  {
+    $project: {
+      _id: 0,
+      "date range": {
+        $concat: [
+          {
+            $dateToString: {
+              format: "%d/%m",
+              date: "$firstDate",
+            },
+          },
+          " - ",
+          {
+            $dateToString: {
+              format: "%d/%m",
+              date: "$lastDate",
+            },
+          },
+
+        ],
+      },
+      count: 1,
      },
     },
-
-     
-    {
-     $unwind: "$job",
-    },
-
-     
-    {
-      $project: {
-      _id: "$job._id",
-      title: "$job.title",
-      company: "$job.company",
-      applicationCount: 1,
-      },
-    },
-  ]);
-
+   ]);
 
     res.status(200).json({
       success: true,
+
       stats: {
         usersByRole,
         jobsByStatus,
         appsByStatus,
         topJobs: topJobsRaw,
+        applicationsPerWeek,
       },
+
     });
-
-
 
   } catch (err) {
     next(err);
