@@ -42,7 +42,12 @@ const userSchema = new mongoose.Schema({
       ref: "JobPost",
     },
   ],
-
+  otpCode: String,
+  otpExpire: Date,
+  otpVerified: {
+  type: Boolean,
+  default: false,
+  },
 
 
   resetPasswordToken: String,
@@ -59,6 +64,9 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   }
+}, {
+  timestamps: true,
+  versionKey: false
 });
 
 // hash the password before saving the user
@@ -87,6 +95,23 @@ userSchema.methods.getResetPasswordToken = function () {
 
   
   return resetToken;
+};
+
+userSchema.methods.toJSON = function () {
+
+  const userObject = this.toObject();
+
+  delete userObject.password;
+  delete userObject.__v;
+
+  delete userObject.otpCode;
+  delete userObject.otpExpire;
+  delete userObject.otpVerified;
+
+  delete userObject.resetPasswordToken;
+  delete userObject.resetPasswordExpire;
+
+  return userObject;
 };
 
 module.exports = mongoose.model("User", userSchema);
