@@ -1,4 +1,4 @@
-// src/components/JobCard.jsx
+
 import { MapPin, Briefcase, DollarSign, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ApplicationStatusBadge from "@/components/ApplicationStatusBadge";
@@ -19,7 +19,7 @@ export default function JobCard({ job, onView, onSave, saved = false }) {
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 hover:bg-neutral-800/70 transition flex flex-col gap-3">
 
-      {/* TOP ROW — title + bookmark */}
+     
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-semibold leading-snug truncate">
@@ -45,7 +45,7 @@ export default function JobCard({ job, onView, onSave, saved = false }) {
         </button>
       </div>
 
-      {/* META ROW — location · type · salary */}
+      
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-400">
         <span className="flex items-center gap-1">
           <MapPin className="w-3.5 h-3.5" />
@@ -63,7 +63,7 @@ export default function JobCard({ job, onView, onSave, saved = false }) {
         )}
       </div>
 
-      {/* BOTTOM ROW — category badge + status + button */}
+      
       <div className="flex items-center justify-between gap-2 pt-1">
         <div className="flex items-center gap-2 flex-wrap">
           {job.category && (

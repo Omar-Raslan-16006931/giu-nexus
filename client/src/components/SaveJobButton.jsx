@@ -1,4 +1,4 @@
-// src/components/SaveJobButton.jsx
+
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import api from "@/services/api";
@@ -14,20 +14,20 @@ export default function SaveJobButton({ jobId, initialSaved = false, jobStatus }
   const isDisabled = jobStatus !== "open" || loading;
 
   const handleSave = async (e) => {
-    e.stopPropagation(); // prevent triggering JobCard click/navigate
+    e.stopPropagation(); 
 
     if (!isAuthenticated) return navigate("/login");
     if (isDisabled) return;
 
-    // optimistic update
+    
     setSaved((prev) => !prev);
     setLoading(true);
 
     try {
       const { data } = await api.post(`/jobs/${jobId}/save`);
-      setSaved(data.saved); // sync with actual backend response
+      setSaved(data.saved); 
     } catch {
-      setSaved((prev) => !prev); // revert on failure
+      setSaved((prev) => !prev); 
     } finally {
       setLoading(false);
     }

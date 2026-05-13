@@ -1,4 +1,3 @@
-// src/components/ApplicationStatusBadge.jsx
 const STATUS = {
   pending:     { label: "Pending",     classes: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
   shortlisted: { label: "Shortlisted", classes: "bg-green-500/10  text-green-400  border-green-500/20"  },

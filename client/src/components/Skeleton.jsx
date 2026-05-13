@@ -1,4 +1,4 @@
-// src/components/Skeleton.jsx
+
 export function SkeletonLine({ className = "" }) {
   return <div className={`animate-pulse rounded-md bg-white/5 ${className}`} />;
 }
