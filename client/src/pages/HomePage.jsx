@@ -1,6 +1,6 @@
 // src/pages/HomePage.jsx
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Sparkles, Briefcase, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import ApplicationStatusBadge from "@/components/ApplicationStatusBadge";

@@ -145,7 +145,7 @@ router.post("/verify-otp", authLimiter, verifyOtp);
 /**
  * @swagger
  * /api/v1/auth/reset-password/{token}:
- *   post:
+ *   patch:
  *     summary: Reset password using token
  *     tags: [Auth]
  *     parameters:
@@ -172,6 +172,6 @@ router.post("/verify-otp", authLimiter, verifyOtp);
  *       400:
  *         description: Invalid or expired token
  */
-router.post("/reset-password/:token", authLimiter, resetPassword);
+router.patch("/reset-password/:token", authLimiter, resetPassword);
 
 module.exports = router;
