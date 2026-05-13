@@ -7,11 +7,10 @@ import { useScroll } from "@/components/ui/use-scroll";
 import { useAuth } from "@/context/AuthContext";
 
 const ROLE_LINKS = {
-  jobSeeker: [
+  jobseeker: [
     { label: "Jobs", href: "/jobs" },
     { label: "Saved", href: "/jobs/saved" },
     { label: "Applications", href: "/applications/my" },
-    { label: "Profile", href: "/profile" },
   ],
   recruiter: [
     { label: "Dashboard", href: "/recruiter/dashboard" },
@@ -32,9 +31,11 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const normalizedRole = user?.role?.toLowerCase();
+
   const links = isAuthenticated
-    ? (ROLE_LINKS[user?.role] ?? [])
-    : [{ label: "Browse Jobs", href: "/jobs" }];
+    ? (ROLE_LINKS[normalizedRole] ?? [])
+    : [{ label: "Jobs", href: "/jobs" }];
 
   React.useEffect(() => { setOpen(false); }, [location.pathname]);
 
@@ -65,32 +66,47 @@ export default function Navbar() {
           { "md:px-2": scrolled }
         )}
       >
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <img src="/giunexus.pfp.png" alt="Home" className="h-22 w-auto" />
-          <span className="font-bold text-base text-foreground hidden sm:inline">Home</span>
-        </Link>
+        <div className="hidden items-center md:flex flex-1 ml-4">
+          <Link
+            to="/"
+            className="flex items-center gap-2 flex-shrink-0 rounded-xl px-2 py-1 transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted"
+          >
+            <img src="/giunexus.pfp.png" alt="Home" className="h-20 w-auto" />
+            <span className="hidden sm:inline text-sm font-semibold tracking-[0.18em] uppercase text-foreground">
+              Home
+            </span>
+          </Link>
 
-        {/* Desktop links */}
-        <div className="hidden items-center gap-1 md:flex flex-1 ml-8">
-          {links.map((link) => (
-            <Link
-              key={link.label}
-              to={link.href}
-              className={buttonVariants({ variant: "ghost", className: "text-sm" })}
-            >
-              {link.label}
-            </Link>
-          ))}
+          <span className="mx-2 h-4 w-px bg-gray-500" />
+
+          <div className="flex items-center gap-1">
+            {links.map((link, index) => (
+              <React.Fragment key={link.label}>
+                {index > 0 && <span className="h-3.5 w-px bg-gray-500" />}
+                <Link
+                  to={link.href}
+                  className={buttonVariants({
+                    variant: "ghost",
+                    className: "text-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted hover:shadow-sm",
+                  })}
+                >
+                  {link.label}
+                </Link>
+              </React.Fragment>
+            ))}
+          </div>
         </div>
 
-        {/* Desktop auth */}
         <div className="hidden items-center gap-1.5 md:flex">
           {isAuthenticated ? (
             <>
               <Link
                 to="/profile"
-                className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-muted transition-colors"
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className: "cursor-pointer flex items-center gap-1.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted text-xs px-3",
+                })}
               >
                 {user?.profilePicture ? (
                   <img
@@ -107,23 +123,39 @@ export default function Navbar() {
                   {user?.name?.split(" ")[0]}
                 </span>
               </Link>
-              <Button variant="outline" size="sm" className="text-xs" onClick={handleLogout}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="cursor-pointer text-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted"
+                onClick={handleLogout}
+              >
                 Log Out
               </Button>
             </>
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" size="sm">Sign In</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted"
+                >
+                  Sign In
+                </Button>
               </Link>
               <Link to="/register">
-                <Button size="sm">Get Started</Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted"
+                >
+                  Register
+                </Button>
               </Link>
             </>
           )}
         </div>
 
-        {/* Mobile toggle */}
         <Button
           size="icon"
           variant="outline"
@@ -134,7 +166,6 @@ export default function Navbar() {
         </Button>
       </nav>
 
-      {/* Mobile menu */}
       <div
         className={cn(
           "bg-background/90 fixed top-14 right-0 bottom-0 left-0 z-50 flex flex-col overflow-hidden border-y md:hidden",
@@ -149,14 +180,19 @@ export default function Navbar() {
           )}
         >
           <div className="grid gap-y-2">
-            {links.map((link) => (
-              <Link
-                key={link.label}
-                to={link.href}
-                className={buttonVariants({ variant: "ghost", className: "justify-start" })}
-              >
-                {link.label}
-              </Link>
+            {links.map((link, index) => (
+              <React.Fragment key={link.label}>
+                {index > 0 && <span className="mx-2 h-px bg-gray-500" />}
+                <Link
+                  to={link.href}
+                  className={buttonVariants({
+                    variant: "ghost",
+                    className: "justify-start transition-all duration-200 hover:translate-x-0.5",
+                  })}
+                >
+                  {link.label}
+                </Link>
+              </React.Fragment>
             ))}
           </div>
 
@@ -165,7 +201,11 @@ export default function Navbar() {
               <>
                 <Link
                   to="/profile"
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-muted"
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "sm",
+                    className: "w-full justify-start cursor-pointer flex items-center gap-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted text-xs px-3 py-2",
+                  })}
                 >
                   {user?.profilePicture ? (
                     <img
@@ -189,10 +229,10 @@ export default function Navbar() {
             ) : (
               <>
                 <Link to="/login" className="w-full">
-                  <Button variant="outline" className="w-full text-xs">Sign In</Button>
+                  <Button variant="outline" className="w-full text-xs cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted">Sign In</Button>
                 </Link>
                 <Link to="/register" className="w-full">
-                  <Button className="w-full text-xs">Get Started</Button>
+                  <Button variant="outline" className="w-full text-xs cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-muted">Register</Button>
                 </Link>
               </>
             )}
