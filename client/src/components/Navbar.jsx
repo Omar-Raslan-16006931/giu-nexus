@@ -30,6 +30,10 @@ export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const pendingNotice =
+    isAuthenticated && user?.status === "pending"
+      ? "Account pending admin approval"
+      : location.state?.flashMessage || "";
 
   const normalizedRole = user?.role?.toLowerCase();
 
@@ -100,6 +104,11 @@ export default function Navbar() {
         <div className="hidden items-center gap-1.5 md:flex">
           {isAuthenticated ? (
             <>
+              {pendingNotice && (
+                <span className="max-w-44 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-[11px] font-medium text-amber-100">
+                  {pendingNotice}
+                </span>
+              )}
               <Link
                 to="/profile"
                 className={buttonVariants({
@@ -199,6 +208,11 @@ export default function Navbar() {
           <div className="flex flex-col gap-2">
             {isAuthenticated ? (
               <>
+                {pendingNotice && (
+                  <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-100">
+                    {pendingNotice}
+                  </div>
+                )}
                 <Link
                   to="/profile"
                   className={buttonVariants({
