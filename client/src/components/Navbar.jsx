@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { MenuToggleIcon } from "@/components/ui/menu-toggle-icon";
 import { useScroll } from "@/components/ui/use-scroll";
 import { useAuth } from "@/context/AuthContext";
+import PopupMessage from "./PopupMessage";
 
 const ROLE_LINKS = {
   jobseeker: [
@@ -26,14 +27,20 @@ const ROLE_LINKS = {
 
 export default function Navbar() {
   const [open, setOpen] = React.useState(false);
+  const [popupDismissed, setPopupDismissed] = React.useState(false);
   const scrolled = useScroll(10);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const popup = location.state?.popup;
   const pendingNotice =
     isAuthenticated && user?.status === "pending"
       ? "Account pending admin approval"
       : location.state?.flashMessage || "";
+
+  React.useEffect(() => {
+    setPopupDismissed(false);
+  }, [location.pathname, popup?.message, popup?.variant]);
 
   const normalizedRole = user?.role?.toLowerCase();
 
@@ -54,6 +61,16 @@ export default function Navbar() {
   };
 
   return (
+    <>
+    {popup && !popupDismissed && (
+      <PopupMessage
+        open
+        message={popup.message}
+        variant={popup.variant}
+        onClose={() => setPopupDismissed(true)}
+      />
+    )}
+
     <header
       className={cn(
         "sticky top-0 z-50 mx-auto w-full max-w-5xl border-b border-transparent md:rounded-md md:border md:transition-all md:ease-out",
@@ -254,5 +271,6 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    </>
   );
 }

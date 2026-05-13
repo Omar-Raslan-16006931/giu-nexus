@@ -10,7 +10,6 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("jobseeker");
     const [error, setError] = useState("");
-    const [notice, setNotice] = useState("");
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -25,7 +24,6 @@ export default function RegisterPage() {
 
         setLoading(true);
         setError("");
-        setNotice("");
 
         try {
             const { data } = await api.post("/auth/register", {
@@ -37,10 +35,13 @@ export default function RegisterPage() {
 
             login(data.token, data.user);
 
-            if (data.user?.status === "pending") {
+            if (data.message) {
                 navigate("/", {
                     state: {
-                        flashMessage: "Account pending admin approval",
+                        popup: {
+                            message: data.message,
+                            variant: data.user?.status === "pending" ? "warning" : "success",
+                        },
                     },
                 });
                 return;
@@ -48,7 +49,7 @@ export default function RegisterPage() {
 
             navigate("/");
         } catch (err) {
-            setError(err.response?.data?.message || "Unable to register");
+            setError(err.response?.data?.message || "");
         } finally {
             setLoading(false);
         }
@@ -117,14 +118,6 @@ export default function RegisterPage() {
                         }`}
                     >
                         {error || "placeholder"}
-                    </p>
-
-                    <p
-                        className={`overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 transition-all duration-300 ${
-                            notice ? "max-h-24 opacity-100" : "max-h-0 border-transparent bg-transparent px-0 py-0 opacity-0"
-                        }`}
-                    >
-                        {notice || "placeholder"}
                     </p>
 
                     <button

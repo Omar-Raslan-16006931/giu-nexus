@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return setError("Invalid email or password");
+    if (!email.trim() || !password.trim()) return setError("Email and password are required");
 
     setLoading(true);
     setError("");
@@ -22,9 +22,18 @@ export default function LoginPage() {
     try {
       const { data } = await api.post("/auth/login", { email, password });
       login(data.token, data.user);
-      navigate("/");
+      navigate("/", {
+        state: data.message
+          ? {
+              popup: {
+                message: data.message,
+                variant: "success",
+              },
+            }
+          : undefined,
+      });
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password");
+      setError(err.response?.data?.message || "");
     } finally {
       setLoading(false);
     }

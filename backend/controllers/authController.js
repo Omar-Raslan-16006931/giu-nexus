@@ -42,6 +42,11 @@ exports.forgotPassword = async (req, res, next) => {
     user.otpVerified = false;
 
     const resetToken = user.getResetPasswordToken();
+    
+    user.tempResetToken = resetToken;
+    user.tempResetTokenExpire = Date.now() + 5 * 60 * 1000;
+    
+    const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
 
     await user.save({
       validateBeforeSave: false,
@@ -54,13 +59,19 @@ After verifying OTP, use this token:
 
 ${resetToken}
 
+Reset password here:
+
+${resetUrl}
+
 This OTP and link expire in 5 minutes.
 `;
 
-    await sendEmail({
+    sendEmail({
       to: user.email,
       subject: "Password Reset OTP",
       text: message,
+    }).catch((error) => {
+      console.error("Failed to send password reset email:", error);
     });
 
     
@@ -108,10 +119,12 @@ exports.verifyOtp = async (req, res, next) => {
     await user.save({
       validateBeforeSave: false,
     });
+    const resetToken = user.tempResetToken;
 
     res.status(200).json({
       success: true,
       message: "OTP verified",
+      resetToken,
     });
 
   } catch (err) {
@@ -167,6 +180,10 @@ exports.resetPassword = async (req, res, next) => {
     user.otpCode = undefined;
     user.otpExpire = undefined;
     user.otpVerified = false;
+    
+    
+    user.tempResetToken = undefined;
+    user.tempResetTokenExpire = undefined;
 
     await user.save();
 
@@ -176,6 +193,7 @@ exports.resetPassword = async (req, res, next) => {
     res.status(200).json({
       success: true,
       token,
+      user,
       message: "Password reset successful",
     });
 

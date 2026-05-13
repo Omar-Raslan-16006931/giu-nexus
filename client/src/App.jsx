@@ -13,6 +13,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import VerifyOtpPage from "./pages/VerifyOtpPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import EditProfilePage from "./pages/EditProfilePage";
@@ -57,6 +58,11 @@ export default function App() {
         <Route
           path="/forgot-password"
           element={<ForgotPasswordPage />}
+        />
+
+        <Route
+          path="/verify-otp"
+          element={<VerifyOtpPage />}
         />
 
         <Route

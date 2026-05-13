@@ -52,6 +52,10 @@ const userSchema = new mongoose.Schema({
 
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  
+  tempResetToken: String,
+  tempResetTokenExpire: Date,
+  
   // only applies if role = recruiter
 
   status: {
