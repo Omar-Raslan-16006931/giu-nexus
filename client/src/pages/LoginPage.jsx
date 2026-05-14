@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import api from "@/services/api";
-import { useAuth } from "@/context/AuthContext";
+import api from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,7 +14,11 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return setError("Email and password are required");
+
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -22,18 +26,9 @@ export default function LoginPage() {
     try {
       const { data } = await api.post("/auth/login", { email, password });
       login(data.token, data.user);
-      navigate("/", {
-        state: data.message
-          ? {
-              popup: {
-                message: data.message,
-                variant: "success",
-              },
-            }
-          : undefined,
-      });
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || "");
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -41,7 +36,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen grid place-items-center bg-neutral-950 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6"
+      >
         <h1 className="text-2xl font-bold text-white">Login</h1>
         <p className="mt-1 text-sm text-neutral-400">Sign in to continue.</p>
 
@@ -53,6 +51,7 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
           />
+
           <input
             type="password"
             placeholder="Password"
@@ -61,8 +60,12 @@ export default function LoginPage() {
             className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none"
           />
 
-          <p className={`overflow-hidden text-sm text-red-400 transition-all duration-300 ${error ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
-            {error || "placeholder"}
+          <p
+            className={`overflow-hidden text-sm text-red-400 transition-all duration-300 ${
+              error ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
+            }`}
+          >
+            {error}
           </p>
 
           <button
@@ -76,11 +79,17 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-4 text-sm text-neutral-400">
-          No account? <Link to="/register" className="text-white underline">Register</Link>
+          No account?{" "}
+          <Link to="/register" className="text-white underline">
+            Register
+          </Link>
         </p>
 
         <p className="mt-2 text-sm text-neutral-400">
-          <Link to="/forgot-password" className="text-neutral-300 underline underline-offset-4 hover:text-white">
+          <Link
+            to="/forgot-password"
+            className="text-neutral-300 underline underline-offset-4 hover:text-white"
+          >
             Forgot password?
           </Link>
         </p>
