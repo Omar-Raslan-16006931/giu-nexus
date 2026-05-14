@@ -117,7 +117,7 @@ export default function RegisterPage() {
                             error ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
                         }`}
                     >
-                        {error || "placeholder"}
+                        {error}
                     </p>
 
                     <button

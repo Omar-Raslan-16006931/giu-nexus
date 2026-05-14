@@ -62,7 +62,7 @@ export default function LoginPage() {
           />
 
           <p className={`overflow-hidden text-sm text-red-400 transition-all duration-300 ${error ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
-            {error || "placeholder"}
+            {error}
           </p>
 
           <button
