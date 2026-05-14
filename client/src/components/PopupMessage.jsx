@@ -112,7 +112,7 @@ export default function PopupMessage({
             className={`h-full ${progressClass}`}
             style={{
               width: progressActive ? "0%" : "100%",
-              transition: `width ${durationMs}ms linear`,
+              transition: `width ${durationMs - 20}ms linear`,
             }}
           />
         </div>
