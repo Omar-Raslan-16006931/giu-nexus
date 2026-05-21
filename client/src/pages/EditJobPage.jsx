@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loader2, Briefcase } from "lucide-react";
 import { getJobById, updateJob } from "../services/jobService";
+import PopupMessage from "../components/PopupMessage";
 
 export default function EditJobPage() {
   const { id } = useParams();
@@ -18,9 +19,10 @@ export default function EditJobPage() {
     totalSlots: "",
   });
 
-  const [error, setError] = useState("");
+  const originalData = useRef(null);
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
+  const [popup, setPopup] = useState(null);
 
   useEffect(() => {
     const loadJob = async () => {
@@ -28,7 +30,7 @@ export default function EditJobPage() {
         const data = await getJobById(id);
         const job = data.job || data;
 
-        setFormData({
+        const loaded = {
           title: job.title || "",
           company: job.company || "",
           description: job.description || "",
@@ -37,11 +39,18 @@ export default function EditJobPage() {
             : job.requirements || "",
           location: job.location || "",
           type: job.type || "full-time",
-          salary: job.salary || "",
-          totalSlots: job.totalSlots || "",
-        });
+          salary: String(job.salary || ""),
+          totalSlots: String(job.totalSlots || ""),
+        };
+
+        setFormData(loaded);
+        originalData.current = loaded;
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to load job");
+        setPopup({
+          variant: "error",
+          title: "Error",
+          message: err?.response?.data?.message || "Failed to load job.",
+        });
       } finally {
         setPageLoading(false);
       }
@@ -58,12 +67,36 @@ export default function EditJobPage() {
     e.preventDefault();
 
     if (!formData.title.trim() || !formData.company.trim() || !formData.description.trim()) {
-      setError("Title, company, and description are required");
+      setPopup({
+        variant: "error",
+        title: "Missing fields",
+        message: "Title, company, and description are required.",
+      });
+      return;
+    }
+
+    const orig = originalData.current;
+    const unchanged =
+      orig &&
+      formData.title.trim() === orig.title.trim() &&
+      formData.company.trim() === orig.company.trim() &&
+      formData.description.trim() === orig.description.trim() &&
+      formData.requirements.trim() === orig.requirements.trim() &&
+      formData.location.trim() === orig.location.trim() &&
+      formData.type === orig.type &&
+      String(formData.salary) === String(orig.salary) &&
+      String(formData.totalSlots) === String(orig.totalSlots);
+
+    if (unchanged) {
+      setPopup({
+        variant: "error",
+        title: "No changes",
+        message: "You haven't made any changes to the job.",
+      });
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       const jobData = {
@@ -77,9 +110,21 @@ export default function EditJobPage() {
       };
 
       await updateJob(id, jobData);
-      navigate("/recruiter/dashboard");
+
+      setPopup({
+        variant: "success",
+        title: "Job updated!",
+        message: "Your changes have been saved. Redirecting...",
+      });
+
+      
+      setTimeout(() => navigate(`/jobs/${id}`), 5000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update job");
+      setPopup({
+        variant: "error",
+        title: "Error",
+        message: err?.response?.data?.message || "Failed to update job.",
+      });
     } finally {
       setLoading(false);
     }
@@ -98,6 +143,15 @@ export default function EditJobPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 px-4 py-14 text-white">
+      <PopupMessage
+        open={!!popup}
+        onClose={() => setPopup(null)}
+        variant={popup?.variant}
+        title={popup?.title}
+        message={popup?.message || ""}
+        durationMs={popup?.variant === "success" ? 2000 : 5000}
+      />
+
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-center gap-2 text-neutral-400">
           <Briefcase className="h-4 w-4" />
@@ -137,10 +191,6 @@ export default function EditJobPage() {
 
               <input name="totalSlots" value={formData.totalSlots} onChange={handleChange} placeholder="Total slots" type="number" className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" />
             </div>
-
-            <p className={`overflow-hidden text-sm text-red-400 transition-all duration-300 ${error ? "max-h-20 opacity-100" : "max-h-0 opacity-0"}`}>
-              {error}
-            </p>
 
             <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-medium text-black transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.01] hover:cursor-pointer hover:shadow-lg active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
