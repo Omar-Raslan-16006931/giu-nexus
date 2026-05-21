@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Users, Briefcase, FileText, Trophy } from "lucide-react";
 import Spinner from "@/components/Spinner";
 import { getAdminStats } from "@/services/adminService";
-
+import { useNavigate } from "react-router-dom";
 function StatCard({ title, icon: Icon, children }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
@@ -38,6 +38,7 @@ function formatStatusLabel(status) {
 }
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -128,8 +129,9 @@ export default function AdminDashboard() {
             {topJobs.map((job, index) => (
               <li
                 key={job._id}
-                className="flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-black/20 px-4 py-3"
-              >
+                onClick={() => navigate(`/jobs/${job._id}`)}
+                className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-white/5 bg-black/20 px-4 py-3 transition hover:border-white/10 hover:bg-white/[0.05]"
+                >
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs font-bold text-amber-400">
                     {index + 1}
