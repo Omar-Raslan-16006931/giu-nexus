@@ -1,6 +1,6 @@
-const moogoose = require('mongoose');
+const mongoose = require('mongoose');
 
-const applicationSchema = new moogose.Schema({
+const applicationSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -13,16 +13,21 @@ const applicationSchema = new moogose.Schema({
     },
     coverLetter: {
         type: String,
+        default: "",
     },
     status: {
         type: String,
         enum: ["pending", "shortlisted", "rejected"],
         default: "pending",
+        lowercase: true,
     },
     appliedAt: {
         type: Date,
         default: Date.now,
     },
+},{
+  timestamps: true,
+  versionKey: false
 });
 
 // prevent duplicate applications 
