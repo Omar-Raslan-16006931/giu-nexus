@@ -2,7 +2,7 @@ const JobPost = require("../models/jobPost-schema");
 const hf = require("../services/hfService");
 const User = require("../models/User");
 const mongoose = require("mongoose");
-
+const Application = require("../models/Application-schema");
 exports.createJob = async (req, res, next) => {
   try {
    
@@ -261,7 +261,7 @@ exports.getJobById = async (req, res, next) => {
 
     
     const job = await JobPost.findById(id)
-      .populate("createdBy", "-_id name email");
+      .populate("createdBy", " name email");
     
     if (!job) {
       return res.status(404).json({
@@ -272,11 +272,19 @@ exports.getJobById = async (req, res, next) => {
     const jobResponse = {
      _id: job._id,
      title: job.title,
+     company: job.company,
      description: job.description,
      requirements: job.requirements,
      category: job.category,
      status: job.status,
      createdBy: job.createdBy,
+     salary: job.salary,
+     location: job.location,
+     type: job.type,
+     totalSlots: job.totalSlots,
+     createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+     
     };
 
 
@@ -544,52 +552,22 @@ exports.getSavedJobs = async (req, res, next) => {
 
 exports.getMyJobs = async (req, res, next) => {
   try {
-
     if (req.user.role !== "recruiter") {
-      return res.status(403).json({
-        success: false,
-        message: "Only recruiters can view their jobs",
-      });
+      return res.status(403).json({ success: false, message: "Only recruiters can view their jobs" });
     }
 
-    const jobs = await JobPost.aggregate([
-      {
-        $match: {
-          createdBy: mongoose.Types.ObjectId(req.user.id),
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      {
-        $lookup: {
-          from: "applications",
-          localField: "_id",
-          foreignField: "job",
-          as: "applications",
-        },
-      },
-      {
-        $addFields: {
-          applicantCount: { $size: "$applications" },
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          title: 1,
-          company: 1,
-          status: 1,
-          type: 1,
-          createdAt: 1,
-          applicantCount: 1,
-        },
-      },
-    ]);
+    const jobs = await JobPost.find({ createdBy: req.user.id })
+      .select("_id title company location type category status createdAt")
+      .sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      jobs,
-    });
+    const jobsWithCount = await Promise.all(
+      jobs.map(async (job) => {
+        const count = await Application.countDocuments({ job: job._id });
+        return { ...job.toObject(), applicantsCount: count };
+      })
+    );
 
+    res.status(200).json({ success: true, jobs: jobsWithCount });
   } catch (err) {
     next(err);
   }
