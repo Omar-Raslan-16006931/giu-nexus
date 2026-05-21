@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, Briefcase } from "lucide-react";
 import { createJob } from "../services/jobService";
+import PopupMessage from "../components/PopupMessage";
 
 export default function CreateJobPage() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function CreateJobPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,7 +49,14 @@ export default function CreateJobPage() {
       };
 
       await createJob(jobData);
-      navigate("/recruiter/dashboard");
+
+      setPopup({
+        variant: "success",
+        title: "Job created!",
+        message: "Your job listing has been posted. Redirecting...",
+      });
+
+      setTimeout(() => navigate("/recruiter/dashboard"), 4000);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create job");
     } finally {
@@ -57,6 +66,15 @@ export default function CreateJobPage() {
 
   return (
     <div className="min-h-screen bg-neutral-950 px-4 py-14 text-white">
+      <PopupMessage
+        open={!!popup}
+        onClose={() => setPopup(null)}
+        variant={popup?.variant}
+        title={popup?.title}
+        message={popup?.message || ""}
+        durationMs={4000}
+      />
+
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-center gap-2 text-neutral-400">
           <Briefcase className="h-4 w-4" />
