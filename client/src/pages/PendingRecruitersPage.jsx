@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import Spinner from "@/components/Spinner";
+import PopupMessage from "@/components/PopupMessage";
 import {
   getPendingRecruiters,
   updateUserStatus,
@@ -11,6 +12,7 @@ export default function PendingRecruitersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionId, setActionId] = useState(null);
+  const [popup, setPopup] = useState(null);
 
   const loadRecruiters = useCallback(async () => {
     setLoading(true);
@@ -35,8 +37,19 @@ export default function PendingRecruitersPage() {
     try {
       await updateUserStatus(userId, status);
       setRecruiters((prev) => prev.filter((u) => u._id !== userId));
+      setPopup({
+        variant: status ===  "success" ,
+        title: status === "approved" ? "Approved" : "Rejected",
+        message: status === "approved" ? "Recruiter has been approved successfully."
+            : "Recruiter has been rejected.",
+      });
     } catch (err) {
       setError(err.response?.data?.message || `Failed to ${status} recruiter`);
+      setPopup({
+        variant: "error",
+        title: "Error",
+        message: err.response?.data?.message || `Failed to ${status} recruiter`,
+      });
     } finally {
       setActionId(null);
     }
@@ -52,6 +65,15 @@ export default function PendingRecruitersPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
+      <PopupMessage
+        open={!!popup}
+        onClose={() => setPopup(null)}
+        variant={popup?.variant || "default"}
+        title={popup?.title}
+        message={popup?.message || ""}
+        durationMs={3000}
+      />
+
       <h1 className="text-2xl font-bold text-white">Pending Recruiters</h1>
       <p className="mt-1 text-sm text-neutral-400">
         Review and approve or reject recruiter registration requests.
