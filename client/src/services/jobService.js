@@ -14,3 +14,18 @@ export const updateJob = async (id, jobData) => {
   const response = await api.patch(`/jobs/${id}`, jobData);
   return response.data;
 };
+
+export const getMyJobs = async () => {
+  const response = await api.get("/jobs/my-jobs");
+  return response.data;
+};
+
+export const getSavedJobs = async () => {
+  const response = await api.get("/jobs/saved");
+  return response.data;
+};
+
+export const toggleSaveJob = async (jobId) => {
+  const response = await api.post(`/jobs/${jobId}/save`);
+  return response.data;
+};

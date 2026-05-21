@@ -552,11 +552,38 @@ exports.getMyJobs = async (req, res, next) => {
       });
     }
 
-    const jobs = await JobPost.find({
-      createdBy: req.user.id,
-    })
-      .select("_id title status type createdAt")
-      .sort({ createdAt: -1 });
+    const jobs = await JobPost.aggregate([
+      {
+        $match: {
+          createdBy: mongoose.Types.ObjectId(req.user.id),
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "applications",
+          localField: "_id",
+          foreignField: "job",
+          as: "applications",
+        },
+      },
+      {
+        $addFields: {
+          applicantCount: { $size: "$applications" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          company: 1,
+          status: 1,
+          type: 1,
+          createdAt: 1,
+          applicantCount: 1,
+        },
+      },
+    ]);
 
     res.status(200).json({
       success: true,
