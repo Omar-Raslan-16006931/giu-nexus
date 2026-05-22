@@ -9,6 +9,11 @@ Description
 
 A MERN-stack platform that helps students find jobs and internships and helps recruiters find suitable candidates.—
 
+## Live Demo
+- Frontend: [ https://giu-nexus-gold.vercel.app/ ]
+- Backend: [ https://giu-nexus-czvo.onrender.com ]
+
+
 ## Team
     •	 Omar Raslan        16006931
     •	 Nour Nayer Mahran  16004731
