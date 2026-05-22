@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import { changePassword } from "@/services/authService";
 import PopupMessage from "../components/PopupMessage";
 
 export default function ChangePasswordPage() {
@@ -22,20 +22,12 @@ export default function ChangePasswordPage() {
     e.preventDefault();
 
     if (form.currentPassword === form.newPassword) {
-      setPopup({
-        type: "error",
-        title: "Error",
-        message: "Current password and new password cannot be the same.",
-      });
+      setPopup({ type: "error", title: "Error", message: "Current password and new password cannot be the same." });
       return;
     }
 
     if (form.newPassword !== form.confirmPassword) {
-      setPopup({
-        type: "error",
-        title: "Error",
-        message: "New password and confirm password do not match.",
-      });
+      setPopup({ type: "error", title: "Error", message: "New password and confirm password do not match." });
       return;
     }
 
@@ -43,10 +35,7 @@ export default function ChangePasswordPage() {
     setPopup(null);
 
     try {
-      const response = await api.patch("/profile/change-password", {
-        currentPassword: form.currentPassword,
-        newPassword: form.newPassword,
-      });
+      const data = await changePassword(form.currentPassword, form.newPassword);
 
       setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
       localStorage.removeItem("token");
@@ -57,7 +46,7 @@ export default function ChangePasswordPage() {
           popup: {
             variant: "success",
             title: "Success",
-            message: response?.data?.message + ",Please log in again.",
+            message: data.message + ", Please log in again.",
           },
         },
         replace: true,
@@ -89,9 +78,7 @@ export default function ChangePasswordPage() {
         className="mx-auto w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-black/20"
       >
         <h1 className="text-2xl font-semibold">Change Password</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Update your account password.
-        </p>
+        <p className="mt-1 text-sm text-neutral-500">Update your account password.</p>
 
         <div className="mt-6 space-y-4">
           <input
@@ -102,7 +89,6 @@ export default function ChangePasswordPage() {
             placeholder="Current password"
             className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/30"
           />
-
           <input
             type="password"
             name="newPassword"
@@ -111,7 +97,6 @@ export default function ChangePasswordPage() {
             placeholder="New password"
             className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none focus:border-white/30"
           />
-
           <input
             type="password"
             name="confirmPassword"

@@ -1,80 +1,114 @@
-import {
-  createContext,
-  useContext,
-  useState
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
+
+function normalizeUser(user) {
+  if (!user) return null;
+
+  const rawRole = String(user.role || "").trim().toLowerCase();
+
+  let normalizedRole = rawRole;
+  if (rawRole === "jobseeker") normalizedRole = "jobSeeker";
+  if (rawRole === "admin") normalizedRole = "admin";
+  if (rawRole === "recruiter") normalizedRole = "recruiter";
+
+  return {
+    ...user,
+    role: normalizedRole,
+  };
+}
 
 export function AuthProvider({ children }) {
-
-  const [user, setUser] = useState(() => {
-
-    const savedUser =
-      localStorage.getItem("user");
-
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [user, setUserState] = useState(() => {
     try {
-
-      return savedUser
-        ? JSON.parse(savedUser)
-        : null;
-
+      const raw = localStorage.getItem("user");
+      return raw ? normalizeUser(JSON.parse(raw)) : null;
     } catch {
-
       return null;
     }
   });
 
-  const [token, setToken] = useState(() => {
+  const isAuthenticated = !!token;
 
-    return localStorage.getItem("token")
-      || null;
+  const setUser = (newUser) => {
+    const normalized = normalizeUser(newUser);
+    setUserState(normalized);
 
-  });
+    if (normalized) {
+      localStorage.setItem("user", JSON.stringify(normalized));
+    } else {
+      localStorage.removeItem("user");
+    }
+  };
 
-  const login = (newToken, userData) => {
+  const login = (newToken, newUser) => {
+    setToken(newToken || "");
 
-    localStorage.setItem(
-      "token",
-      newToken
-    );
+    if (newToken) {
+      localStorage.setItem("token", newToken);
+    } else {
+      localStorage.removeItem("token");
+    }
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify(userData)
-    );
-
-    setToken(newToken);
-
-    setUser(userData);
+    setUser(newUser || null);
   };
 
   const logout = () => {
-
+    setToken("");
+    setUserState(null);
     localStorage.removeItem("token");
-
     localStorage.removeItem("user");
-
-    setToken(null);
-
-    setUser(null);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        login,
-        logout,
-        isAuthenticated: !!token
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser || null);
+  };
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token") || "";
+    const storedUser = localStorage.getItem("user");
+
+    setToken(storedToken);
+
+    try {
+      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+      const normalized = normalizeUser(parsedUser);
+      setUserState(normalized);
+
+      if (normalized) {
+        localStorage.setItem("user", JSON.stringify(normalized));
+      } else {
+        localStorage.removeItem("user");
+      }
+    } catch {
+      setUserState(null);
+      localStorage.removeItem("user");
+    }
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      token,
+      user,
+      isAuthenticated,
+      login,
+      logout,
+      updateUser,
+      setUser,
+    }),
+    [token, user, isAuthenticated]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+
+  return context;
 }

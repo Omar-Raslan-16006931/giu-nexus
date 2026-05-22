@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import api from "../services/api";
+import { loginUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
@@ -24,7 +24,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { data } = await api.post("/auth/login", { email, password });
+      const data = await loginUser(email, password);
       login(data.token, data.user);
       navigate("/", { replace: true });
     } catch (err) {

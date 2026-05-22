@@ -4,10 +4,11 @@ import { Loader2, Pencil, KeyRound, Sparkles, Mail, Shield } from "lucide-react"
 import api from "../services/api";
 import PopupMessage from "../components/PopupMessage";
 import SkillChip from "../components/SkillChip";
+import { getProfile, extractSkills } from "../services/profileService";
+
 
 const getImageSrc = (pic) =>
-  !pic ? "" : pic.startsWith("http") ? pic : `${api.defaults.baseURL}${pic}`;
-
+  !pic ? "" : pic.startsWith("http") || pic.startsWith("blob:") ? pic : `${api.defaults.baseURL.replace("/api/v1", "")}${pic}`;
 const getErrorMessage = (err, fallback) =>
   err?.response?.data?.message || err?.message || fallback;
 
@@ -20,10 +21,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let active = true;
-    api.get("/profile")
-      .then(({ data }) => active && setProfile(data.user))
-      .catch((err) => active && setPageError(getErrorMessage(err, "Failed to load profile.")))
-      .finally(() => active && setLoading(false));
+    getProfile()
+     .then((data) => active && setProfile(data.user))
+     .catch((err) => active && setPageError(getErrorMessage(err, "Failed to load profile.")))
+     .finally(() => active && setLoading(false));
     return () => { active = false; };
   }, []);
 
@@ -32,16 +33,16 @@ export default function ProfilePage() {
   const skills = useMemo(() => profile?.skills || [], [profile]);
 
   const handleExtractSkills = async () => {
-    if (!hasBio) return setPopup({ type: "error", title: "Extraction failed", message: "Add a bio before extracting skills." });
+    if (!hasBio) return setPopup({ variant: "error", title: "Extraction failed", message: "Add a bio before extracting skills." });
 
     setExtracting(true);
     setPopup(null);
     try {
-      const { data } = await api.post("/profile/extract-skills");
+      const data = await extractSkills();
       setProfile((prev) => ({ ...prev, skills: data.skills || [] }));
-      setPopup({ type: "success", title: "Success", message: "Skills extracted successfully from your bio." });
+      setPopup({ variant: "success", title: "Success", message: "Skills extracted successfully from your bio." });
     } catch (err) {
-      setPopup({ type: "error", title: "Extraction failed", message: getErrorMessage(err, "Failed to extract skills.") });
+      setPopup({ variant: "error", title: "Extraction failed", message: getErrorMessage(err, "Failed to extract skills.") });
     } finally {
       setExtracting(false);
     }
@@ -65,7 +66,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-neutral-950 px-4 py-14 text-white">
       <PopupMessage
         open={Boolean(popup)} onClose={() => setPopup(null)}
-        variant={popup?.type || "default"} title={popup?.title}
+        variant={popup?.variant || "default"} title={popup?.title}
         message={popup?.message || ""} durationMs={3500}
       />
 
@@ -119,6 +120,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Skills Card */}
+        {!isRecruiter && profile?.role !== "admin" && (
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-black/20 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -143,6 +145,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        )}
       </div>
     </div>
   );

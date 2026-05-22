@@ -1,8 +1,9 @@
 const JobPost = require("../models/jobPost-schema");
 const hf = require("../services/hfService");
 const User = require("../models/User");
+const fetch = require("node-fetch");
 const mongoose = require("mongoose");
-
+const Application = require("../models/Application-schema");
 exports.createJob = async (req, res, next) => {
   try {
    
@@ -261,7 +262,7 @@ exports.getJobById = async (req, res, next) => {
 
     
     const job = await JobPost.findById(id)
-      .populate("createdBy", "-_id name email");
+      .populate("createdBy", " name email");
     
     if (!job) {
       return res.status(404).json({
@@ -272,11 +273,19 @@ exports.getJobById = async (req, res, next) => {
     const jobResponse = {
      _id: job._id,
      title: job.title,
+     company: job.company,
      description: job.description,
      requirements: job.requirements,
      category: job.category,
      status: job.status,
      createdBy: job.createdBy,
+     salary: job.salary,
+     location: job.location,
+     type: job.type,
+     totalSlots: job.totalSlots,
+     createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+     
     };
 
 
@@ -544,26 +553,52 @@ exports.getSavedJobs = async (req, res, next) => {
 
 exports.getMyJobs = async (req, res, next) => {
   try {
-
     if (req.user.role !== "recruiter") {
-      return res.status(403).json({
-        success: false,
-        message: "Only recruiters can view their jobs",
-      });
+      return res.status(403).json({ success: false, message: "Only recruiters can view their jobs" });
     }
 
-    const jobs = await JobPost.find({
-      createdBy: req.user.id,
-    })
-      .select("_id title status type createdAt")
+    const jobs = await JobPost.find({ createdBy: req.user.id })
+      .select("_id title company location type category status createdAt")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      jobs,
-    });
+    const jobsWithCount = await Promise.all(
+      jobs.map(async (job) => {
+        const count = await Application.countDocuments({ job: job._id });
+        return { ...job.toObject(), applicantsCount: count };
+      })
+    );
 
+    res.status(200).json({ success: true, jobs: jobsWithCount });
   } catch (err) {
     next(err);
+  }
+};
+
+
+exports.generateCoverLetter = async (req, res) => {
+  try {
+    const { jobTitle, companyName, jobDescription } = req.body;
+    const user = await User.findById(req.user.id);
+    const bio = user?.bio || "A motivated job seeker.";
+
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: `Write a short cover letter for ${jobTitle} at ${companyName}. About me: ${bio}. Job: ${jobDescription}. Cover letter:`,
+          parameters: { max_new_tokens: 300, return_full_text: false },
+        }),
+      }
+    );
+    const data = await response.json();
+    res.json({ coverLetter: data[0]?.generated_text?.trim() });
+  } catch (err) {
+    console.error("Cover letter error:", err.message);
+    res.status(500).json({ message: "Failed to generate cover letter" });
   }
 };

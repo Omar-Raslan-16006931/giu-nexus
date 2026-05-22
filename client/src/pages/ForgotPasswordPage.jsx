@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import api from "@/services/api";
+import { forgotPassword } from "@/services/authService";
 
 export default function ForgotPasswordPage() {
     const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            const { data } = await api.post("/auth/forgot-password", { email });
+            const data = await forgotPassword(email);
 
             navigate("/verify-otp", {
                 state: {
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
             >
                 <h1 className="text-2xl font-bold text-white">Forgot password</h1>
                 <p className="mt-1 text-sm text-neutral-400">
-                    Enter your email and we’ll send a reset code.
+                    Enter your email and we'll send a reset code.
                 </p>
 
                 <div className="mt-6 space-y-4">

@@ -1,7 +1,8 @@
 const User = require("../models/User");
 const hf = require("../services/hfService");
 const bcrypt = require("bcrypt");
-
+const fs = require("fs");
+const path = require("path");
 
 exports.extractSkills = async (req, res, next) => {
   try {
@@ -120,35 +121,14 @@ exports.updateProfile = async (req, res, next) => {
   try {
     const { name, bio } = req.body || {};
 
-    if (
-      Object.keys(req.body || {}).length === 0 &&
-      !req.file
-    ) {
+    if (Object.keys(req.body || {}).length === 0 && !req.file) {
       return res.status(400).json({
         success: false,
         message: "No fields provided to update",
       });
     }
 
-    const updates = {};
-
-    if (name !== undefined) updates.name = name;
-    if (bio !== undefined) updates.bio = bio;
-
-   
-    if (req.file) {
-      updates.profilePicture =
-        `/uploads/${req.file.filename}`;
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      updates,
-      {
-        returnDocument: "after",
-        runValidators: true,
-      }
-    ).select(
+    const user = await User.findById(req.user.id).select(
       "-password -__v -otpCode -otpExpire -otpVerified -resetPasswordToken -resetPasswordExpire"
     );
 
@@ -159,16 +139,39 @@ exports.updateProfile = async (req, res, next) => {
       });
     }
 
+    if (name !== undefined) user.name = name;
+    if (bio !== undefined) user.bio = bio;
+
+    if (req.file) {
+      if (
+        user.profilePicture &&
+        user.profilePicture.startsWith("/uploads/")
+      ) {
+        const oldFilePath = path.join(
+          __dirname,
+          "..",
+          user.profilePicture.replace(/^\/+/, "")
+        );
+
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+
+      user.profilePicture = `/uploads/${req.file.filename}`;
+    }
+
+    await user.save();
+
     res.status(200).json({
       success: true,
+      message: "Profile updated successfully",
       user,
     });
-
   } catch (err) {
     next(err);
   }
 };
-
 
 exports.changePassword = async (req, res, next) => {
   try {

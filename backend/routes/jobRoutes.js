@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-
-const {updateJob,deleteJob, createJob,getJobs,getJobById,getRecommendedJobs,toggleSaveJob,getSavedJobs,getMyJobs} = require("../controllers/jobController");
+const fetch = require("node-fetch");
+const {generateCoverLetter,updateJob,deleteJob, createJob,getJobs,getJobById,getRecommendedJobs,toggleSaveJob,getSavedJobs,getMyJobs} = require("../controllers/jobController");
 const { protect, authorize } = require("../middleware/auth");
-
+const User = require("../models/User");
 
 /**
  * @swagger
@@ -65,6 +65,9 @@ router.get("/saved", protect, getSavedJobs);
  */
 router.get("/my-jobs", protect, authorize("recruiter"), getMyJobs);
 
+router.post("/cover-letter", protect, generateCoverLetter);
+
+
 /**
  * @swagger
  * /api/v1/jobs:
@@ -106,6 +109,8 @@ router.get("/my-jobs", protect, authorize("recruiter"), getMyJobs);
  *         description: Recruiter access required
  */
 router.post("/", protect, authorize("recruiter"), createJob);
+
+
 
 /**
  * @swagger
