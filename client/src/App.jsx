@@ -177,6 +177,10 @@ export default function App() {
             </PrivateRoute>
           }
         />
+       <Route
+path="/jobs/recommended"
+element={<RecommendedJobsPage />}
+/>
 
         <Route
           path="/admin/dashboard"

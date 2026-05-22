@@ -98,8 +98,7 @@ export default function SavedJobsPage() {
               key={job._id}
               job={job}
               saved
-              onView={() => navigate(/jobs/${job._id})}
-              onSave={() => handleUnsave(job._id)}
+onView={() => navigate(`/jobs/${job._id}`)}              onSave={() => handleUnsave(job._id)}
             />
           ))}
         </div>
