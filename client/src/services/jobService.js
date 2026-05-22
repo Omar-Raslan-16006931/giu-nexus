@@ -34,3 +34,7 @@ export const getSavedJobs = async () => {
   const response = await api.get("/jobs/saved");
   return response.data;
 }
+export const getRecommendedJobs = async () => {
+  const response = await api.get("/jobs/recommended");
+  return response.data;
+}

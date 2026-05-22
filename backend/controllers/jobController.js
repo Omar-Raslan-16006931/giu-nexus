@@ -1,6 +1,7 @@
 const JobPost = require("../models/jobPost-schema");
 const hf = require("../services/hfService");
 const User = require("../models/User");
+const fetch = require("node-fetch");
 const mongoose = require("mongoose");
 const Application = require("../models/Application-schema");
 exports.createJob = async (req, res, next) => {
@@ -570,5 +571,34 @@ exports.getMyJobs = async (req, res, next) => {
     res.status(200).json({ success: true, jobs: jobsWithCount });
   } catch (err) {
     next(err);
+  }
+};
+
+
+exports.generateCoverLetter = async (req, res) => {
+  try {
+    const { jobTitle, companyName, jobDescription } = req.body;
+    const user = await User.findById(req.user.id);
+    const bio = user?.bio || "A motivated job seeker.";
+
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: `Write a short cover letter for ${jobTitle} at ${companyName}. About me: ${bio}. Job: ${jobDescription}. Cover letter:`,
+          parameters: { max_new_tokens: 300, return_full_text: false },
+        }),
+      }
+    );
+    const data = await response.json();
+    res.json({ coverLetter: data[0]?.generated_text?.trim() });
+  } catch (err) {
+    console.error("Cover letter error:", err.message);
+    res.status(500).json({ message: "Failed to generate cover letter" });
   }
 };

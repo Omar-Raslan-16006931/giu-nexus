@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import api from "@/services/api";
+import { resetPassword } from "@/services/authService";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ResetPasswordPage() {
@@ -24,9 +24,7 @@ export default function ResetPasswordPage() {
         setLoading(true);
 
         try {
-            const { data } = await api.patch(`/auth/reset-password/${token}`, {
-                password,
-            });
+            const data = await resetPassword(token, password);
 
             login(data.token, data.user);
             navigate("/", {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import api from "@/services/api";
+import { registerUser } from "@/services/authService";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
@@ -26,12 +26,7 @@ export default function RegisterPage() {
         setError("");
 
         try {
-            const { data } = await api.post("/auth/register", {
-                name,
-                email,
-                password,
-                role,
-            });
+            const data = await registerUser(name, email, password, role);
 
             login(data.token, data.user);
 

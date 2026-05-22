@@ -117,16 +117,17 @@ export default function EditJobPage() {
         message: "Your changes have been saved. Redirecting...",
       });
 
-      
-      setTimeout(() => navigate(`/jobs/${id}`), 5000);
+      // Keep loading=true so button stays disabled until redirect
+      setTimeout(() => navigate(`/jobs/${id}`), 4000);
+
     } catch (err) {
+      // Only reset loading on error so user can retry
+      setLoading(false);
       setPopup({
         variant: "error",
         title: "Error",
         message: err?.response?.data?.message || "Failed to update job.",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -149,7 +150,7 @@ export default function EditJobPage() {
         variant={popup?.variant}
         title={popup?.title}
         message={popup?.message || ""}
-        durationMs={popup?.variant === "success" ? 2000 : 5000}
+        durationMs={popup?.variant === "success" ? 4000 : 5000}
       />
 
       <div className="mx-auto max-w-3xl">
@@ -192,7 +193,11 @@ export default function EditJobPage() {
               <input name="totalSlots" value={formData.totalSlots} onChange={handleChange} placeholder="Total slots" type="number" className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" />
             </div>
 
-            <button type="submit" disabled={loading} className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-medium text-black transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.01] hover:cursor-pointer hover:shadow-lg active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-medium text-black transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.01] hover:cursor-pointer hover:shadow-lg active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Saving..." : "Save Changes"}
             </button>

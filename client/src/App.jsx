@@ -1,14 +1,8 @@
-import {
-  BrowserRouter,
-  Routes,
-  Route
-} from "react-router-dom";
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import PrivateRoute from "./components/PrivateRoute";
 import RoleRoute from "./components/RoleRoute";
-
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -35,197 +29,41 @@ import AdminUsersPage from "./pages/AdminUsersPage";
 export default function App() {
   return (
     <BrowserRouter>
+      <div className="flex flex-col min-h-screen bg-neutral-950">
+        <Navbar />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/verify-otp" element={<VerifyOtpPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Route path="/jobs" element={<JobListPage />} />
 
-      <Navbar />
+            <Route path="/jobs/recommended" element={<PrivateRoute><RecommendedJobsPage /></PrivateRoute>} />
+            <Route path="/jobs/saved" element={<PrivateRoute><SavedJobsPage /></PrivateRoute>} />
+            <Route path="/jobs/:id" element={<JobDetailPage />} />
 
-      <Routes>
+            <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="/profile/edit" element={<PrivateRoute><EditProfilePage /></PrivateRoute>} />
+            <Route path="/profile/change-password" element={<PrivateRoute><ChangePasswordPage /></PrivateRoute>} />
 
-        <Route
-          path="/"
-          element={<HomePage />}
-        />
+            <Route path="/applications/my" element={<PrivateRoute><MyApplicationsPage /></PrivateRoute>} />
 
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
+            <Route path="/recruiter/dashboard" element={<PrivateRoute><RoleRoute allowedRoles={["recruiter"]}><RecruiterDashboard /></RoleRoute></PrivateRoute>} />
+            <Route path="/recruiter/jobs/create" element={<PrivateRoute><RoleRoute allowedRoles={["recruiter"]}><CreateJobPage /></RoleRoute></PrivateRoute>} />
+            <Route path="/recruiter/jobs/:id/edit" element={<PrivateRoute><RoleRoute allowedRoles={["recruiter"]}><EditJobPage /></RoleRoute></PrivateRoute>} />
+            <Route path="/recruiter/applicants/:jobId" element={<PrivateRoute><RoleRoute allowedRoles={["recruiter"]}><ApplicantsPage /></RoleRoute></PrivateRoute>} />
 
-        <Route
-          path="/register"
-          element={<RegisterPage />}
-        />
-
-        <Route
-          path="/forgot-password"
-          element={<ForgotPasswordPage />}
-        />
-
-        <Route
-          path="/verify-otp"
-          element={<VerifyOtpPage />}
-        />
-
-        <Route
-          path="/reset-password/:token"
-          element={<ResetPasswordPage />}
-        />
-
-        <Route
-          path="/profile"
-          element={
-            <PrivateRoute>
-              <ProfilePage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/profile/edit"
-          element={
-            <PrivateRoute>
-              <EditProfilePage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/profile/change-password"
-          element={
-            <PrivateRoute>
-              <ChangePasswordPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/jobs"
-          element={<JobListPage />}
-        />
-
-        <Route
-          path="/jobs/:id"
-          element={<JobDetailPage />}
-        />
-
-        <Route
-          path="/jobs/recommended"
-          element={
-            <PrivateRoute>
-              <RecommendedJobsPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/jobs/saved"
-          element={
-            <PrivateRoute>
-              <SavedJobsPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/recruiter/dashboard"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["recruiter"]}>
-                <RecruiterDashboard />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/recruiter/jobs/create"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["recruiter"]}>
-                <CreateJobPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/recruiter/jobs/:id/edit"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["recruiter"]}>
-                <EditJobPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/recruiter/applicants/:jobId"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["recruiter"]}>
-                <ApplicantsPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/applications/my"
-          element={
-            <PrivateRoute>
-              <MyApplicationsPage />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/recruiters"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["admin"]}>
-                <PendingRecruitersPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/jobs"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["admin"]}>
-                <AdminJobsPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/admin/users"
-          element={
-            <PrivateRoute>
-              <RoleRoute allowedRoles={["admin"]}>
-                <AdminUsersPage />
-              </RoleRoute>
-            </PrivateRoute>
-          }
-        />
-
-      </Routes>
-
-      <Footer />
-
+            <Route path="/admin/dashboard" element={<PrivateRoute><RoleRoute allowedRoles={["admin"]}><AdminDashboard /></RoleRoute></PrivateRoute>} />
+            <Route path="/admin/recruiters" element={<PrivateRoute><RoleRoute allowedRoles={["admin"]}><PendingRecruitersPage /></RoleRoute></PrivateRoute>} />
+            <Route path="/admin/jobs" element={<PrivateRoute><RoleRoute allowedRoles={["admin"]}><AdminJobsPage /></RoleRoute></PrivateRoute>} />
+            <Route path="/admin/users" element={<PrivateRoute><RoleRoute allowedRoles={["admin"]}><AdminUsersPage /></RoleRoute></PrivateRoute>} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </BrowserRouter>
   );
 }

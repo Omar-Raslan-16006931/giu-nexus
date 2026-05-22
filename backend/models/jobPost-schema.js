@@ -61,4 +61,9 @@ const jobPostSchema = new mongoose.Schema({
   timestamps: true,
   versionKey: false
 });
+
+jobPostSchema.pre("deleteOne", { document: true, query: false }, async function () {
+    const Application = require("./Application-schema");
+    await Application.deleteMany({ job: this._id });
+});
 module.exports = mongoose.model("JobPost", jobPostSchema);

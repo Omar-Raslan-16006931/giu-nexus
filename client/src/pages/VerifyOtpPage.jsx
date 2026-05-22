@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import api from "@/services/api";
+import { verifyOtp } from "@/services/authService";
 
 export default function VerifyOtpPage() {
     const navigate = useNavigate();
@@ -30,20 +30,18 @@ export default function VerifyOtpPage() {
         setLoading(true);
 
         try {
-            const response = await api.post("/auth/verify-otp", {
-                email: email.toLowerCase(),
-                otpCode: otp,
-            });
+            const data = await verifyOtp(email.toLowerCase(), otp);
 
-            if (response.data.resetToken) {
-                navigate(`/reset-password/${response.data.resetToken}`, {
-                    state: {
-                        popup: {
-                            message: response.data.message,
-                            variant: "success",
-                        },
-                    },
-                });
+            if (data.resetToken) {
+             navigate(`/reset-password/${data.resetToken}`, {
+             state: {
+              popup: {
+              message: data.message,
+             variant: "success",
+            },
+         },
+        });
+      
             }
         } catch (err) {
             const apiMsg = err.response?.data?.message;
