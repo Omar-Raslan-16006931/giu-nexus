@@ -1,40 +1,51 @@
-import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
-import Spinner from "@/components/Spinner";
-import PopupMessage from "@/components/PopupMessage";
-import { getAllUsers, deleteUser, updateUserStatus } from "@/services/adminService";
+import { useState, useEffect, useCallback } from "react";
+import api from "../../services/api";
+import "./AdminUsersPage.css";
 
-const ROLES = ["", "jobSeeker", "recruiter", "admin"];
-const STATUSES = ["", "approved", "pending", "rejected"];
+const ROLE_OPTIONS = ["all", "jobSeeker", "recruiter", "admin"];
+const STATUS_OPTIONS = ["all", "active", "pending", "approved", "rejected"];
 
-function formatRole(role) {
-  const map = { jobSeeker: "Job Seeker", recruiter: "Recruiter", admin: "Admin" };
-  return map[role] ?? role;
+const ROLE_META = {
+  jobSeeker: { label: "Job Seeker", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+  recruiter: { label: "Recruiter", color: "#60a5fa", bg: "rgba(96,165,250,0.12)" },
+  admin: { label: "Admin", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+};
+
+const STATUS_META = {
+  active: { label: "Active", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+  approved: { label: "Approved", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
+  pending: { label: "Pending", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+  rejected: { label: "Rejected", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
+};
+
+function RoleBadge({ role }) {
+  const meta = ROLE_META[role] || { label: role, color: "#94a3b8", bg: "rgba(148,163,184,0.12)" };
+  return (
+    <span className="badge" style={{ color: meta.color, background: meta.bg }}>
+      {meta.label}
+    </span>
+  );
 }
 
-function ConfirmModal({ open, onConfirm, onCancel, name }) {
-  if (!open) return null;
+function StatusBadge({ status }) {
+  const meta = STATUS_META[status] || { label: status, color: "#94a3b8", bg: "rgba(148,163,184,0.12)" };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-neutral-900 p-6 shadow-xl">
-        <h2 className="text-base font-semibold text-white">Delete User</h2>
-        <p className="mt-2 text-sm text-neutral-400">
-          Are you sure you want to delete{" "}
-          <span className="font-medium text-white">{name}</span>? This action
-          cannot be undone.
-        </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="rounded-xl border border-white/10 px-4 py-2 text-sm text-neutral-400 transition hover:text-white"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="rounded-xl border border-red-500/30 bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/30"
-          >
-            Delete
+    <span className="badge" style={{ color: meta.color, background: meta.bg }}>
+      {meta.label}
+    </span>
+  );
+}
+
+function ConfirmModal({ isOpen, message, onConfirm, onCancel, danger = true }) {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <p className="modal-msg">{message}</p>
+        <div className="modal-actions">
+          <button className="btn-ghost" onClick={onCancel}>Cancel</button>
+          <button className={danger ? "btn-danger" : "btn-primary"} onClick={onConfirm}>
+            Confirm
           </button>
         </div>
       </div>
@@ -45,202 +56,224 @@ function ConfirmModal({ open, onConfirm, onCancel, name }) {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [filters, setFilters] = useState({ role: "", status: "" });
-  const [actionId, setActionId] = useState(null);
-  const [popup, setPopup] = useState(null);
-  const [confirmModal, setConfirmModal] = useState(null); // { userId, name }
+  const [error, setError] = useState(null);
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modal, setModal] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = {};
+      if (roleFilter !== "all") params.role = roleFilter;
+      if (statusFilter !== "all") params.status = statusFilter;
+      const { data } = await api.get("/api/v1/users", { params });
+      setUsers(data.users || data || []);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to load users.");
+    } finally {
+      setLoading(false);
+    }
+  }, [roleFilter, statusFilter]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-      try {
-        const params = {};
-        if (filters.role) params.role = filters.role;
-        if (filters.status) params.status = filters.status;
-        const data = await getAllUsers(params);
-        if (!cancelled) setUsers(data.users || []);
-      } catch (err) {
-        if (!cancelled)
-          setError(err.response?.data?.message || "Failed to load users.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => { cancelled = true; };
-  }, [filters]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleDelete = async () => {
-    const { userId } = confirmModal;
-    setConfirmModal(null);
-    setActionId(userId);
+    const { userId } = modal;
+    setActionLoading(userId + "_delete");
+    setModal(null);
     try {
-      await deleteUser(userId);
+      await api.delete(`/api/v1/users/${userId}`);
       setUsers((prev) => prev.filter((u) => u._id !== userId));
-      setPopup({ variant: "success", title: "Deleted", message: "User deleted successfully." });
+      showToast("User deleted successfully.");
     } catch (err) {
-      setPopup({
-        variant: "error",
-        title: "Error",
-        message: err.response?.data?.message || "Failed to delete user.",
-      });
+      showToast(err?.response?.data?.message || "Delete failed.", "error");
     } finally {
-      setActionId(null);
+      setActionLoading(null);
     }
   };
 
-  const handleStatusChange = async (userId, status) => {
-    setActionId(userId);
+  const handleStatusChange = async () => {
+    const { userId, status } = modal;
+    setActionLoading(userId + "_status");
+    setModal(null);
     try {
-      await updateUserStatus(userId, status);
+      const { data } = await api.patch(`/api/v1/users/${userId}/status`, { status });
       setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, status } : u))
+        prev.map((u) => (u._id === userId ? { ...u, status: data.user?.status || status } : u))
       );
-      setPopup({
-        variant: "success",
-        title: "Updated",
-        message: `User status changed to ${status}.`,
-      });
+      showToast(`User status updated to "${status}".`);
     } catch (err) {
-      setPopup({
-        variant: "error",
-        title: "Error",
-        message: err.response?.data?.message || "Failed to update status.",
-      });
+      showToast(err?.response?.data?.message || "Status update failed.", "error");
     } finally {
-      setActionId(null);
+      setActionLoading(null);
     }
   };
+
+  const filtered = users.filter((u) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
+  });
+
+  const confirmDelete = (userId, name) =>
+    setModal({ type: "delete", userId, message: `Delete user "${name}"? This cannot be undone.` });
+
+  const confirmStatus = (userId, name, status) =>
+    setModal({
+      type: "status",
+      userId,
+      status,
+      message: `Set "${name}" status to "${status}"?`,
+      danger: status === "rejected",
+    });
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <PopupMessage
-        open={!!popup}
-        onClose={() => setPopup(null)}
-        variant={popup?.variant || "default"}
-        title={popup?.title}
-        message={popup?.message || ""}
-        durationMs={3000}
-      />
+    <div className="au-page">
+      {toast && <div className={`toast toast-${toast.type}`}>{toast.msg}</div>}
 
-      <ConfirmModal
-        open={!!confirmModal}
-        name={confirmModal?.name}
-        onConfirm={handleDelete}
-        onCancel={() => setConfirmModal(null)}
-      />
-
-      <h1 className="text-2xl font-bold text-white">All Users</h1>
-      <p className="mt-1 text-sm text-neutral-400">
-        Manage all registered users on the platform.
-      </p>
-
-      {/* Filters */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        <select
-          value={filters.role}
-          onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
-          className="rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-white outline-none focus:border-white/20"
-        >
-          <option value="" className="bg-neutral-900 text-white">All Roles</option>
-          {ROLES.filter(Boolean).map((r) => (
-            <option key={r} value={r} className="bg-neutral-900 text-white">
-              {formatRole(r)}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={filters.status}
-          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-          className="rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-white outline-none focus:border-white/20"
-        >
-          <option value="" className="bg-neutral-900 text-white">All Statuses</option>
-          {STATUSES.filter(Boolean).map((s) => (
-            <option key={s} value={s} className="bg-neutral-900 text-white capitalize">
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </option>
-          ))}
-        </select>
-
-        {(filters.role || filters.status) && (
-          <button
-            onClick={() => setFilters({ role: "", status: "" })}
-            className="rounded-xl border border-white/10 px-3 py-2 text-sm text-neutral-400 transition hover:text-white"
-          >
-            Clear filters
-          </button>
-        )}
+      <div className="au-header">
+        <div>
+          <h1 className="au-title">User Management</h1>
+          <p className="au-subtitle">
+            {loading ? "Loading…" : `${filtered.length} user${filtered.length !== 1 ? "s" : ""} found`}
+          </p>
+        </div>
       </div>
 
-      {error && (
-        <p className="mt-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {error}
-        </p>
-      )}
+      <div className="au-filters">
+        <input
+          className="au-search"
+          type="text"
+          placeholder="Search by name or email…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <div className="filter-group">
+          <label className="filter-label">Role</label>
+          <div className="pill-group">
+            {ROLE_OPTIONS.map((r) => (
+              <button
+                key={r}
+                className={`pill ${roleFilter === r ? "pill-active" : ""}`}
+                onClick={() => setRoleFilter(r)}
+              >
+                {r === "all" ? "All" : ROLE_META[r]?.label || r}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">Status</label>
+          <div className="pill-group">
+            {STATUS_OPTIONS.map((s) => (
+              <button
+                key={s}
+                className={`pill ${statusFilter === s ? "pill-active" : ""}`}
+                onClick={() => setStatusFilter(s)}
+              >
+                {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {loading ? (
-        <div className="flex min-h-[30vh] items-center justify-center">
-          <Spinner size="lg" />
+        <div className="au-skeletons">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="skeleton-row" style={{ animationDelay: `${i * 0.07}s` }} />
+          ))}
         </div>
-      ) : users.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-12 text-center">
-          <p className="text-sm text-neutral-400">No users found.</p>
+      ) : error ? (
+        <div className="au-error">
+          <span className="error-icon">⚠</span>
+          <p>{error}</p>
+          <button className="btn-primary" onClick={fetchUsers}>Retry</button>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="au-empty"><p>No users match the current filters.</p></div>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-white/10 bg-white/[0.03] text-xs uppercase tracking-wide text-neutral-400">
+        <div className="au-table-wrap">
+          <table className="au-table">
+            <thead>
               <tr>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="hidden px-4 py-3 font-medium sm:table-cell">Email</th>
-                <th className="px-4 py-3 font-medium">Role</th>
-                <th className="hidden px-4 py-3 font-medium md:table-cell">Status</th>
-                <th className="hidden px-4 py-3 font-medium md:table-cell">Joined</th>
-                <th className="px-4 py-3 font-medium text-right">Actions</th>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
-              {users.map((user) => {
-                const busy = actionId === user._id;
+            <tbody>
+              {filtered.map((user) => {
+                const isActing = actionLoading?.startsWith(user._id);
                 return (
-                  <tr key={user._id} className="bg-white/[0.02]">
-                    <td className="px-4 py-3 font-medium text-white">{user.name}</td>
-                    <td className="hidden px-4 py-3 text-neutral-400 sm:table-cell">{user.email}</td>
-                    <td className="px-4 py-3 text-neutral-400">{formatRole(user.role)}</td>
-                    <td className="hidden px-4 py-3 md:table-cell">
-                      {user.role === "recruiter" ? (
-                        <select
-                          value={user.status || "pending"}
-                          disabled={busy}
-                          onChange={(e) => handleStatusChange(user._id, e.target.value)}
-                          className="rounded-lg border border-white/10 bg-neutral-900 px-2 py-1 text-xs text-white outline-none disabled:opacity-50"
-                        >
-                          <option value="pending" className="bg-neutral-900 text-white">Pending</option>
-                          <option value="approved" className="bg-neutral-900 text-white">Approved</option>
-                          <option value="rejected" className="bg-neutral-900 text-white">Rejected</option>
-                        </select>
-                      ) : (
-                        <span className="text-neutral-500">—</span>
-                      )}
+                  <tr key={user._id} className={isActing ? "row-loading" : ""}>
+                    <td>
+                      <div className="user-cell">
+                        <div className="avatar">
+                          {user.profilePicture ? (
+                            <img src={user.profilePicture} alt={user.name} />
+                          ) : (
+                            <span>{user.name?.charAt(0)?.toUpperCase() || "?"}</span>
+                          )}
+                        </div>
+                        <div>
+                          <div className="user-name">{user.name}</div>
+                          <div className="user-email">{user.email}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="hidden px-4 py-3 text-neutral-500 md:table-cell">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                    <td><RoleBadge role={user.role} /></td>
+                    <td><StatusBadge status={user.status} /></td>
+                    <td className="date-cell">
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString("en-GB", {
+                            day: "2-digit", month: "short", year: "numeric",
+                          })
+                        : "—"}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        disabled={busy}
-                        onClick={() => setConfirmModal({ userId: user._id, name: user.name })}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        {busy ? "..." : "Delete"}
-                      </button>
+                    <td>
+                      <div className="action-row">
+                        {user.role !== "admin" && (
+                          <>
+                            {user.status !== "approved" && (
+                              <button
+                                className="act-btn act-approve"
+                                disabled={isActing}
+                                onClick={() => confirmStatus(user._id, user.name, "approved")}
+                                title="Approve"
+                              >✓</button>
+                            )}
+                            {user.status !== "rejected" && (
+                              <button
+                                className="act-btn act-reject"
+                                disabled={isActing}
+                                onClick={() => confirmStatus(user._id, user.name, "rejected")}
+                                title="Reject"
+                              >✕</button>
+                            )}
+                          </>
+                        )}
+                        <button
+                          className="act-btn act-delete"
+                          disabled={isActing}
+                          onClick={() => confirmDelete(user._id, user.name)}
+                          title="Delete user"
+                        >🗑</button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -249,6 +282,14 @@ export default function AdminUsersPage() {
           </table>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!modal}
+        message={modal?.message}
+        danger={modal?.danger !== false}
+        onCancel={() => setModal(null)}
+        onConfirm={modal?.type === "delete" ? handleDelete : handleStatusChange}
+      />
     </div>
   );
 }
