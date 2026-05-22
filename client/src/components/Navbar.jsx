@@ -38,17 +38,17 @@ export default function Navbar() {
   const popup = location.state?.popup;
   const [liveStatus, setLiveStatus] = React.useState(user?.status || "");
 
-    React.useEffect(() => {
-     if (!isAuthenticated) return;
-     api.get("/profile")
-     .then(({ data }) => setLiveStatus(data.user?.status || ""))
-     .catch(() => {});
-    }, [isAuthenticated, location.pathname]);
+  React.useEffect(() => {
+    if (!isAuthenticated) return;
+    api.get("/profile")
+      .then(({ data }) => setLiveStatus(data.user?.status || ""))
+      .catch(() => {});
+  }, [isAuthenticated, location.pathname]);
 
-    const pendingNotice =
-     isAuthenticated && liveStatus === "pending"
-     ? "Account pending admin approval"
-     : location.state?.flashMessage || "";
+  const pendingNotice =
+    isAuthenticated && liveStatus === "pending"
+      ? "Account pending admin approval"
+      : location.state?.flashMessage || "";
 
   const getImageSrc = (pic) =>
     !pic
@@ -96,11 +96,11 @@ export default function Navbar() {
 
       <header
         className={cn(
-          "sticky top-0 z-50 mx-auto w-full max-w-5xl border-b border-transparent md:rounded-md md:border md:transition-all md:ease-out",
+          "sticky top-0 z-50 mx-auto w-full max-w-5xl border-b border-transparent bg-neutral-950 md:rounded-md md:border md:transition-all md:ease-out",
           {
-            "bg-background/95 supports-[backdrop-filter]:bg-background/50 border-border backdrop-blur-lg md:top-4 md:max-w-4xl md:shadow":
+            "md:bg-background/95 md:supports-[backdrop-filter]:bg-background/50 border-border backdrop-blur-lg md:top-4 md:max-w-4xl md:shadow":
               scrolled && !open,
-            "bg-background/90": open,
+            "bg-neutral-950": open,
           }
         )}
       >
@@ -171,7 +171,6 @@ export default function Navbar() {
                       {user?.name?.charAt(0)?.toUpperCase()}
                     </div>
                   )}
-
                   <span className="text-xs font-medium text-foreground hidden sm:inline">
                     {user?.name?.split(" ")[0]}
                   </span>
@@ -223,7 +222,7 @@ export default function Navbar() {
 
         <div
           className={cn(
-            "bg-background/90 fixed top-14 right-0 bottom-0 left-0 z-50 flex flex-col overflow-hidden border-y md:hidden",
+            "bg-neutral-950 fixed top-14 right-0 bottom-0 left-0 z-50 flex flex-col overflow-hidden border-y md:hidden",
             open ? "block" : "hidden"
           )}
         >
@@ -281,7 +280,6 @@ export default function Navbar() {
                         {user?.name?.charAt(0)?.toUpperCase()}
                       </div>
                     )}
-
                     <span className="text-sm font-medium text-foreground">
                       {user?.name}
                     </span>
