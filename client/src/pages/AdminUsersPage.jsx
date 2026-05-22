@@ -10,7 +10,7 @@ const ROLE_META = {
   recruiter: { label: "Recruiter", color: "#60a5fa", bg: "rgba(96,165,250,0.12)" },
   admin: { label: "Admin", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
 };
-
+//ff
 const STATUS_META = {
   active: { label: "Active", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
   approved: { label: "Approved", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },

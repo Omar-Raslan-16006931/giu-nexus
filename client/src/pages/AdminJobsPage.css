@@ -12,6 +12,21 @@
   --ajb-radius-sm: 6px;
   --ajb-font: "DM Sans", "Segoe UI", sans-serif;
 }
+/* :root {
+  --ajb-bg: #0d0f14;
+  --ajb-surface: #13161e;
+  --ajb-border: rgba(255, 255, 255, 0.07);
+  --ajb-border-hover: rgba(255, 255, 255, 0.14);
+  --ajb-text-primary: #e8eaf0;
+  --ajb-text-secondary: #7a8299;
+  --ajb-accent: #6366f1;
+  --ajb-accent-hover: #818cf8;
+  --ajb-danger: #f87171;
+  --ajb-radius: 12px;
+  --ajb-radius-sm: 6px;
+  --ajb-font: "DM Sans", "Segoe UI", sans-serif;
+} */
+
 
 .ajb-page { min-height: 100vh; background: var(--ajb-bg); color: var(--ajb-text-primary); font-family: var(--ajb-font); padding: 40px 32px; position: relative; }
 

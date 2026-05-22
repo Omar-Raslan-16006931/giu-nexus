@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import api from "../../services/api";
 import "./AdminJobsPage.css";
 
+//dj
 const CATEGORY_MAP = {
   Frontend:           { color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
   Backend:            { color: "#60a5fa", bg: "rgba(96,165,250,0.12)" },
