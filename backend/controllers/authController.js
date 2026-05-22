@@ -46,7 +46,7 @@ exports.forgotPassword = async (req, res, next) => {
     user.tempResetToken = resetToken;
     user.tempResetTokenExpire = Date.now() + 5 * 60 * 1000;
     
-    const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
+    const resetUrl = `${"https://giu-nexus-gold.vercel.app" || "http://localhost:5173"}/reset-password/${resetToken}`;
 
     await user.save({
       validateBeforeSave: false,
@@ -55,9 +55,7 @@ exports.forgotPassword = async (req, res, next) => {
     const message = `
 Your OTP code is: ${otp}
 
-After verifying OTP, use this token:
-
-${resetToken}
+After verifying OTP, 
 
 Reset password here:
 
