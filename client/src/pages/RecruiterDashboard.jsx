@@ -108,7 +108,7 @@ export default function RecruiterDashboard() {
                   <h2 className="text-xl font-semibold text-white">{job.title}</h2>
                   <p className="mt-2 text-sm text-neutral-400 capitalize">{job.type}</p>
                 </div>
-                <span className={rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[job.status] ?? statusStyles.open}}>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[job.status] ?? statusStyles.open}`}>
                   {job.status}
                 </span>
               </div>
@@ -126,13 +126,13 @@ export default function RecruiterDashboard() {
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <Link
-                  to={/recruiter/applicants/${job._id}}
+                  to={`/recruiter/applicants/${job._id}`}
                   className="inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-neutral-100"
                 >
                   View Applicants
                 </Link>
                 <Link
-                  to={/recruiter/jobs/${job._id}/edit}
+                  to={`/recruiter/jobs/${job._id}/edit`}
                   className="inline-flex rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white"
                 >
                   Edit Post
