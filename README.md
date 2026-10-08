@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=3&height=200&section=header&text=GIU%20Nexus&fontSize=56&fontColor=ffffff&fontAlignY=36&desc=MERN%20job%20and%20internship%20platform%20for%20GIU%20students%20and%20recruiters&descSize=16&descAlignY=58&animation=fadeIn" width="100%" alt="GIU Nexus"/>
+<img src=".github/assets/banner.svg" width="100%" alt="GIU Nexus"/>
 
 <a href="https://giu-nexus-gold.vercel.app"><img src="https://img.shields.io/badge/Live%20Demo-Visit-22c55e?style=for-the-badge&logo=vercel&logoColor=white" alt="Live demo"/></a>
 <img src="https://img.shields.io/github/last-commit/Omar-Raslan-16006931/giu-nexus?style=for-the-badge&color=6366f1" alt="Last commit"/>
@@ -73,6 +73,6 @@ docker compose up
 
 **Made with ❤️ by [Omar Raslan](https://github.com/Omar-Raslan-16006931)**
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=3&height=100&section=footer" width="100%"/>
+<img src=".github/assets/footer.svg" width="100%"/>
 
 </div>
